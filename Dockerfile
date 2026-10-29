@@ -1,6 +1,6 @@
-FROM node:22-slim AS build
+FROM node:26-slim AS build
 WORKDIR /app
-RUN corepack enable
+RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # `prepare` compiles messages, which are not in the image yet; the build
 # compiles them itself. `rebuild` still runs the builds `allowBuilds` permits.
@@ -8,7 +8,7 @@ RUN pnpm install --frozen-lockfile --ignore-scripts && pnpm rebuild
 COPY . .
 RUN pnpm build
 
-FROM node:22-slim
+FROM node:26-slim
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000

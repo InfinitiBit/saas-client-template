@@ -97,8 +97,8 @@ orval reads [`openapi.yaml`](openapi.yaml), or the file or URL in `API_SPEC`, an
 
 ### Prerequisites
 
-- Node.js 22
-- pnpm at the version pinned in `packageManager`. `corepack enable` installs it.
+- Node.js at the major in `.nvmrc`
+- pnpm at the version pinned in `packageManager`. `npm install -g pnpm` installs it.
 
 ### Installation
 
@@ -147,7 +147,7 @@ The app runs at `http://localhost:3000`, or on the `PORT` you set.
 docker compose up -d --build
 ```
 
-The Dockerfile builds in two stages on Node 22 and runs `.output/server/index.mjs` as a non-root user, with a health check on `/`. Compose joins the external `ib-saas-platform_default` network, so start the platform first.
+The Dockerfile builds in two stages on the Node major in `.nvmrc` and runs `.output/server/index.mjs` as a non-root user, with a health check on `/`. Compose joins the external `ib-saas-platform_default` network, so start the platform first.
 
 ## Start a new Application
 
