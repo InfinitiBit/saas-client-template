@@ -15,6 +15,9 @@ import {
 	sampleNotes,
 } from '@/features/notes/lib/notes-mock';
 
+// Relative dates count back from now, which moves between runs.
+faker.setDefaultRefDate('2026-01-01T00:00:00Z');
+
 const devIdentity: Identity = {
 	email: 'dev@example.com',
 	workspace: 'dev',
@@ -22,7 +25,7 @@ const devIdentity: Identity = {
 	permissions: [],
 };
 
-/** A faker seed from a request's method, path and query: FNV-1a, so the port never changes it. */
+/** A faker seed from a request's method, path and query (FNV-1a), never its host or port. */
 export function requestSeed(method: string, url: string) {
 	const { pathname, search } = new URL(url);
 	let hash = 0x811c9dc5;
@@ -37,14 +40,11 @@ export function requestSeed(method: string, url: string) {
 function seeded<T>(draw: () => T) {
 	return ({ request }: { request: Request }) => {
 		faker.seed(requestSeed(request.method, request.url));
-		// Relative dates count back from now, which moves between runs.
-		faker.setDefaultRefDate('2026-01-01T00:00:00Z');
 
 		return draw();
 	};
 }
 
-/** orval's generated handlers, each answering a request with the same data on every run. */
 export function generatedHandlers() {
 	return [
 		getListNotesMockHandler(seeded(getListNotesResponseMock)),

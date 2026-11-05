@@ -174,7 +174,7 @@ Notes stands in for the Service until yours exists. Remove it once steps 3 and 4
 
 - Delete `src/features/notes/`, `src/routes/_authenticated.notes.tsx` and `src/__tests__/notes.test.tsx`.
 - Remove the Notes nav item from `src/routes/_authenticated.tsx`. Remove `shell_nav_notes` and every `notes_*` key from `messages/en.json` and `messages/de.json`.
-- In `src/features/api/lib/dev-service.ts`, remove the Notes handlers, and in `generatedHandlers()` replace the Notes entries with one `get…MockHandler(seeded(get…ResponseMock))` per operation orval generated in `src/features/api/generated/service.msw.ts`. Rewrite `src/features/api/lib/dev-scenario.example.ts` against one of your paths. In `src/__tests__/dev-service.test.ts`, request one of your paths and compare `generatedHandlers()` with your `get<Service>Mock()` aggregate in place of `getExampleServiceMock()`.
+- In `src/features/api/lib/dev-service.ts`, remove the Notes handlers, and in `generatedHandlers()` replace the Notes entries with one `get…MockHandler(seeded(get…ResponseMock))` per operation orval generated in `src/features/api/generated/service.msw.ts`. Rewrite `src/features/api/lib/dev-scenario.example.ts` against one of your paths. In `src/__tests__/dev-service.test.ts`, point the `notes()` helper and the first test at one of your paths, and compare `generatedHandlers()` with your `get<Service>Mock()` aggregate in place of `getExampleServiceMock()`.
 - Delete `openapi.yaml` unless step 3 replaced it with your Service's spec.
 - Rewrite the Notes examples in `docs/agents/data-fetching.md` with your own feature.
 - Run `pnpm build` once. It regenerates `src/routeTree.gen.ts` without the Notes route, and the type check and the tests read that file.
