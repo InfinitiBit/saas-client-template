@@ -3,7 +3,6 @@ interface FieldMeta {
 	isTouched: boolean;
 }
 
-/** The schema's first message for a field the user has touched, for `Field`'s `error`. */
 export function fieldError({
 	state: { meta },
 }: {
