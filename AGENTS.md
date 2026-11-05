@@ -29,6 +29,7 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 - Do not restyle a design-system component through `className` beyond layout. If the design needs a variant the package lacks, raise it with the design system.
 - Icons come only from the design system's `<Icon>` (`@infinitibit_gmbh/ui/icons`). No other icon package.
 - Render conditionally with a ternary, never `&&` in JSX: a falsy number renders as `0`.
+- A form `Input`, `Textarea` or `SelectTrigger` renders inside the design system's `Field`, which owns its label, `id`, error and ARIA. The form passes `error={fieldError(field)}`, `required` on `Field` for a required control, and `name` on the control. Errors show after the first submit (ADR 0009). A standalone search box is the exception: it has no visible label, only an `aria-label`.
 - A list is a `DataTable`, the only caller of the table and pagination primitives. Its page, size and search live in the address through `listSearchSchema` and `ListSearch` (ADR 0008).
 
 ## Data
