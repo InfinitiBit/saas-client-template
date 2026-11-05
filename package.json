@@ -5,6 +5,7 @@
 	"packageManager": "pnpm@12.8.1",
 	"scripts": {
 		"dev": "vite dev",
+		"dev:mock": "vite dev --mode mock",
 		"build": "vite build",
 		"start": "node --env-file-if-exists=.env .output/server/index.mjs",
 		"test": "vitest run",
