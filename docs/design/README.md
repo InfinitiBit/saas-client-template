@@ -15,4 +15,4 @@ PORT=<port> pnpm dev:mock
 - **Identity.** The dev Service answers it as `dev@example.com` in the `dev` Workspace, with no roles or permissions.
 - **Data.** The dev Service (`src/features/api/lib/dev-service.ts`) answers the Notes paths with sample data. Any path it does not answer goes through to the proxy.
 
-Nothing opens a browser, so several mock servers can run at once.
+Several mock servers can run at once: each takes the next free port, and none opens a browser.

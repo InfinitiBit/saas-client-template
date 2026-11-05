@@ -145,7 +145,7 @@ To run with no Service at all:
 pnpm dev:mock                 # or PORT=<port> pnpm dev:mock
 ```
 
-MSW answers the Identity and the Service's paths in the browser, and the dev server runs as SaaS whatever `.env` says. If the port is taken, Vite moves to the next free one. It prints a `Launch:` URL, `http://localhost:<PORT>/dev#token=dev.dev.dev`, built from the port it bound. Open it to land signed in as `dev@example.com`. [`docs/design/README.md`](docs/design/README.md#mock-mode) has the details.
+MSW answers the Identity and the Service's paths in the browser. If the port is taken, Vite moves to the next free one and prints the `Launch:` URL for the port it bound, `http://localhost:<PORT>/dev#token=dev.dev.dev`. Open it to land signed in. [`docs/design/README.md`](docs/design/README.md#mock-mode) has the details.
 
 ### Running with Docker
 
