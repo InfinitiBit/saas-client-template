@@ -1,6 +1,7 @@
 import { defineConfig } from 'orval';
 
 import { FORWARDED_TAGS } from './src/features/api/lib/api';
+import { edgeProperties } from './src/features/api/lib/edge-text';
 
 // "List Notes" → `listNotes`, so the hook reads `useListNotes` rather than
 // FastAPI's generated operationId.
@@ -38,6 +39,7 @@ export default defineConfig({
 			formatter: 'oxfmt',
 			override: {
 				operationName: (operation) => nameFromSummary(operation.summary),
+				mock: { properties: edgeProperties, arrayMin: 0, arrayMax: 100 },
 				mutator: { path: client, name: 'apiRequest' },
 				query: {
 					// Every call goes through Query, and so through the cache and the gate.

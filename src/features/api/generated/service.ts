@@ -20,16 +20,16 @@ import type {
 	UseQueryResult,
 } from '@tanstack/react-query';
 
-import { apiRequest } from '../lib/client';
-import type { ErrorType, BodyType } from '../lib/client';
-import { apiQueryKey } from '../lib/client';
+import { apiRequest } from '../lib/client.ts';
+import type { ErrorType, BodyType } from '../lib/client.ts';
+import { apiQueryKey } from '../lib/client.ts';
 import type {
 	ListNotesParams,
 	Note,
 	NoteCreate,
 	NotePage,
 	RefusedResponse,
-} from './service.schemas';
+} from './service.schemas.ts';
 
 const withQueryKey = <T extends object, K>(
 	query: T,

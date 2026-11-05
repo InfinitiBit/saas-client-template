@@ -78,3 +78,13 @@ test('lists a seeded handler for every generated one', () => {
 		headers(getExampleServiceMock()),
 	);
 });
+
+test('answers some page of a generated list with no items', async () => {
+	server.use(...generatedHandlers());
+
+	let page = 1;
+
+	while (page < 1000 && (await notes(`?page=${page}`)).items.length > 0) page++;
+
+	expect(page).toBeLessThan(1000);
+});
