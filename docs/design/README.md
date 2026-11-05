@@ -13,7 +13,7 @@ PORT=<port> pnpm dev:mock
 - **Launch URL.** Vite prints it under `Launch:`, built from the port it bound: `http://localhost:<PORT>/dev#token=dev.dev.dev`. Open it to land signed in. `/dev` is where the Tenant portal Launches a user, and it moves to `/` once the Launch is adopted. A bare `/#token=…` ends on the Session gate until a reload ([#63](https://github.com/InfinitiBit/saas-client-template/issues/63)).
 - **Mode.** The dev server runs as SaaS, whatever `APP_MODE` in `.env` says.
 - **Identity.** The dev Service answers it as `dev@example.com` in the `dev` Workspace, with no roles or permissions.
-- **Data.** The dev Service (`src/features/api/lib/dev-service.ts`) answers every Service path. MSW answers with the first handler that matches, in this order: the scenario's handlers, the Identity, the hand-written Notes handlers (sample data that pages, searches and saves), then orval's generated handlers, which answer any other path with faker data.
+- **Data.** The dev Service (`src/features/api/lib/dev-service.ts`) answers every path the proxy forwards. MSW answers with the first handler that matches, in this order: the scenario's handlers, the Identity, the hand-written Notes handlers (sample data that pages, searches and saves), then orval's generated handlers, which answer any other forwarded path with faker data. A request none of them matches goes through to the proxy.
 
 ### Reaching a State
 
