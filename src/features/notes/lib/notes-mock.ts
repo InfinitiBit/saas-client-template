@@ -22,6 +22,13 @@ export function sampleNotes() {
 	).sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
+/** The Notes paths as the dev Service answers them, sharing one store. */
+export function notesHandlers() {
+	const notes = sampleNotes();
+
+	return [pagedNotes(notes), createdNotes(notes)];
+}
+
 /** `POST /api/notes` stored at the front of `notes`, newest first as the Service lists it. */
 export function createdNotes(notes: Note[]) {
 	return getCreateNoteMockHandler(async ({ request }) => {
