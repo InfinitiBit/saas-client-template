@@ -15,9 +15,6 @@ import {
 	sampleNotes,
 } from '@/features/notes/lib/notes-mock';
 
-// Relative dates count back from now, which moves between runs.
-faker.setDefaultRefDate('2026-01-01T00:00:00Z');
-
 const devIdentity: Identity = {
 	email: 'dev@example.com',
 	workspace: 'dev',
@@ -69,6 +66,8 @@ export function devHandlers(handWritten: RequestHandler[]) {
 }
 
 export async function startDevService() {
+	// Relative dates count back from now, which moves between runs.
+	faker.setDefaultRefDate('2026-01-01T00:00:00Z');
 	const notes = sampleNotes();
 
 	await setupWorker(

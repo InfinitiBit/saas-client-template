@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+
 import { getExampleServiceMock } from '@/features/api/generated/service.msw';
 import {
 	devHandlers,
@@ -5,6 +7,12 @@ import {
 	requestSeed,
 } from '@/features/api/lib/dev-service';
 import { server } from '@/testing/msw';
+
+beforeEach(() => {
+	faker.setDefaultRefDate('2026-01-01T00:00:00Z');
+
+	return () => faker.setDefaultRefDate();
+});
 
 const notes = (query: string) =>
 	fetch(`http://localhost/api/notes${query}`).then((response) =>
