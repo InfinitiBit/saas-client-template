@@ -6,6 +6,7 @@ import {
 	generatedHandlers,
 	requestSeed,
 } from '@/features/api/lib/dev-service';
+import { sampleNotes } from '@/features/notes/lib/notes-mock';
 import { server } from '@/testing/msw';
 
 beforeEach(() => {
@@ -87,4 +88,11 @@ test('answers some page of a generated list with no items', async () => {
 	while (page < 1000 && (await notes(`?page=${page}`)).items.length > 0) page++;
 
 	expect(page).toBeLessThan(1000);
+});
+
+test('gives the Notes sample short and long titles from the edge pool', () => {
+	const lengths = sampleNotes().map((note) => note.title.length);
+
+	expect(lengths).toContain(2);
+	expect(lengths).toContain(200);
 });
