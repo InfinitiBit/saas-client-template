@@ -2,7 +2,6 @@ import type { RequestHandler } from 'msw';
 
 import { getListNotesMockHandler } from '@/features/api/generated/service.msw';
 
-// Copy to dev-scenario.ts: its handlers answer ahead of every other dev handler.
 export const devScenario: RequestHandler[] = [
 	getListNotesMockHandler({
 		items: [
