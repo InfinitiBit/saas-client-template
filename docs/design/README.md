@@ -14,6 +14,7 @@ PORT=<port> pnpm dev:mock
 - **Mode.** The dev server runs as SaaS, whatever `APP_MODE` in `.env` says.
 - **Identity.** The dev Service answers it as `dev@example.com` in the `dev` Workspace, with no roles or permissions.
 - **Data.** The dev Service (`src/features/api/lib/dev-service.ts`) answers every path the proxy forwards. MSW answers with the first handler that matches, in this order: the scenario's handlers, the Identity, the hand-written Notes handlers (sample data that pages, searches and saves), then orval's generated handlers, which answer any other forwarded path with faker data. A request none of them matches goes through to the proxy.
+- **Same data on every run.** Each generated handler seeds faker from the request's method, path and query, and counts its dates back from 2026-01-01. A page shows the same data on every reload, port and machine, in any order, and page 2 differs from page 1. A scenario keeps its own data. The Notes sample is seeded once at start, but its dates count back from today.
 
 ### Reaching a State
 
