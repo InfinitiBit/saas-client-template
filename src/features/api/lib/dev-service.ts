@@ -16,6 +16,17 @@ const devIdentity: Identity = {
 	permissions: [],
 };
 
+/** A faker seed from a request's method, path and query: FNV-1a, so the port never changes it. */
+export function requestSeed(method: string, url: string) {
+	const { pathname, search } = new URL(url);
+	let hash = 0x811c9dc5;
+
+	for (const char of `${method} ${pathname}${search}`)
+		hash = Math.imul(hash ^ char.charCodeAt(0), 0x01000193);
+
+	return hash >>> 0;
+}
+
 // A glob, not an import: the scenario is git-ignored and usually absent.
 const scenarios = import.meta.glob<RequestHandler[]>('./dev-scenario.ts', {
 	eager: true,
