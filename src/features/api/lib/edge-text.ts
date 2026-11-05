@@ -2,10 +2,7 @@ import { faker } from '@faker-js/faker';
 import type { OpenApiDocument } from 'orval';
 import { z } from 'zod';
 
-/**
- * Text that breaks layouts, so a mock Screen shows overflow and clipping.
- * orval copies this function's source into the generated mocks: it may use nothing but `faker`.
- */
+/** orval copies this function's source into the generated mocks: it may use nothing but `faker`. */
 export function edgeText() {
 	return faker.helpers.arrayElement([
 		() => faker.string.alpha(2),
@@ -16,7 +13,7 @@ export function edgeText() {
 	])();
 }
 
-const HUMAN_TEXT = /name|title|description|company/;
+const HUMAN_TEXT = /name|title|description|company/i;
 
 interface Schema {
 	$ref?: string;
@@ -31,9 +28,9 @@ interface Schema {
 	oneOf?: Schema[];
 }
 
-// Only the keywords that decide what is text. Anything else, a boolean schema included, reads as not text.
-const schemaKeywords: z.ZodType<Schema> = z
-	.object({
+const schemaKeywords: z.ZodType<Schema> = z.union([
+	z.boolean().transform((): Schema => ({})),
+	z.object({
 		$ref: z.string().optional(),
 		type: z.union([z.string(), z.array(z.string())]).optional(),
 		enum: z.array(z.unknown()).optional(),
@@ -49,22 +46,21 @@ const schemaKeywords: z.ZodType<Schema> = z
 		allOf: z.array(z.lazy(() => schemaKeywords)).optional(),
 		anyOf: z.array(z.lazy(() => schemaKeywords)).optional(),
 		oneOf: z.array(z.lazy(() => schemaKeywords)).optional(),
-	})
-	.catch({});
+	}),
+]);
 
 const specSchemas = z.object({
 	components: z
-		.object({ schemas: z.record(z.string(), schemaKeywords) })
-		.catch({ schemas: {} }),
+		.object({ schemas: z.record(z.string(), schemaKeywords).optional() })
+		.optional(),
 });
 
 /**
- * `override.mock.properties` for orval: `edgeText` for every human-text property.
- * orval's own overrides win over a spec's `enum`, so a name that is ever an enum,
- * a format or a non-string keeps its generated value.
+ * orval's `mock.properties` overrides match by bare name and win over a spec's `enum`,
+ * so a name that is ever an enum, a format or a non-string keeps its generated value.
  */
 export function edgeProperties(spec: OpenApiDocument) {
-	const { schemas } = specSchemas.parse(spec).components;
+	const schemas = specSchemas.parse(spec).components?.schemas ?? {};
 
 	const resolve = (schema: Schema): Schema =>
 		schema.$ref ? (schemas[schema.$ref.split('/').at(-1) ?? ''] ?? {}) : schema;
@@ -86,12 +82,15 @@ export function edgeProperties(spec: OpenApiDocument) {
 		);
 	};
 
-	const text = new Map<string, boolean>();
+	const plainByName = new Map<string, boolean>();
 
 	const visit = (schema: Schema) => {
 		for (const [name, property] of Object.entries(schema.properties ?? {})) {
 			if (HUMAN_TEXT.test(name))
-				text.set(name, (text.get(name) ?? true) && isText(property));
+				plainByName.set(
+					name,
+					(plainByName.get(name) ?? true) && isText(property),
+				);
 
 			visit(property);
 		}
@@ -108,6 +107,8 @@ export function edgeProperties(spec: OpenApiDocument) {
 	Object.values(schemas).forEach(visit);
 
 	return Object.fromEntries(
-		[...text].flatMap(([name, plain]) => (plain ? [[name, edgeText]] : [])),
+		[...plainByName].flatMap(([name, plain]) =>
+			plain ? [[name, edgeText]] : [],
+		),
 	);
 }
