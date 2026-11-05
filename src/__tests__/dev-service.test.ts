@@ -42,6 +42,9 @@ test('seeds a request from its method, path and query, whatever the port', () =>
 
 test('answers the same request with the same data, on any day and in any order', async () => {
 	vi.useFakeTimers({ toFake: ['Date'] });
+	onTestFinished(() => {
+		vi.useRealTimers();
+	});
 	server.use(...generatedHandlers());
 
 	vi.setSystemTime('2026-01-01');
@@ -50,7 +53,6 @@ test('answers the same request with the same data, on any day and in any order',
 	vi.setSystemTime('2027-06-30');
 	const again = await notes('?page=2');
 
-	vi.useRealTimers();
 	expect(again).toEqual(first);
 });
 
@@ -60,7 +62,7 @@ test('answers different queries on one path with different data', async () => {
 	expect(await notes('?page=2')).not.toEqual(await notes('?page=1'));
 });
 
-test('seeds every generated handler', () => {
+test('lists a seeded handler for every generated one', () => {
 	const headers = (handlers: { info: { header: string } }[]) =>
 		handlers.map((handler) => handler.info.header).sort();
 
