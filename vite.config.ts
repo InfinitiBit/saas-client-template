@@ -15,6 +15,7 @@ const isVitest = process.env.VITEST === 'true';
 export default defineConfig(({ mode: viteMode }) => {
 	const mock = viteMode === 'mock';
 
+	// The dev Launch is a SaaS one: Standalone refuses it without the arrival cookie only `/signin` sets.
 	if (mock) process.env.APP_MODE = 'saas';
 
 	return {
@@ -29,8 +30,7 @@ export default defineConfig(({ mode: viteMode }) => {
 			mock && printLaunchUrl(),
 		],
 		resolve: { tsconfigPaths: true },
-		// Same `PORT`, and default, as the built server, so the registered Launch URL
-		// holds in dev.
+		// The built server's `PORT` and default, so plain `pnpm dev` keeps the registered Launch URL.
 		server: {
 			port: Number(loadEnv(viteMode, process.cwd(), '').PORT) || 3000,
 			strictPort: !mock,
