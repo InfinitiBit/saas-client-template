@@ -19,7 +19,7 @@ export const getListNotesResponseMock = (
 		title: (function edgeText() {
 			return faker.helpers.arrayElement([
 				() => faker.string.alpha(2),
-				() => faker.lorem.sentence(100).slice(0, 200),
+				() => `${faker.lorem.sentence(100).slice(0, 199)}.`,
 				() => `${faker.string.alphanumeric(48)}@example.com`,
 				() => 'Müller-Lüdenscheidt GmbH & Co. KG',
 				() => faker.lorem.sentence({ min: 2, max: 6 }),
@@ -41,7 +41,7 @@ export const getCreateNoteResponseMock = (
 	title: (function edgeText() {
 		return faker.helpers.arrayElement([
 			() => faker.string.alpha(2),
-			() => faker.lorem.sentence(100).slice(0, 200),
+			() => `${faker.lorem.sentence(100).slice(0, 199)}.`,
 			() => `${faker.string.alphanumeric(48)}@example.com`,
 			() => 'Müller-Lüdenscheidt GmbH & Co. KG',
 			() => faker.lorem.sentence({ min: 2, max: 6 }),
