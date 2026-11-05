@@ -137,9 +137,15 @@ orval reads [`openapi.yaml`](openapi.yaml), or the file or URL in `API_SPEC`, an
 pnpm dev
 ```
 
-The app runs at `http://localhost:3000`, or on the `PORT` you set.
+The app runs at `http://localhost:3000`, or on the `PORT` you set, and every `/api` call goes through the proxy to a real Service.
 
-`pnpm dev` answers the Service's paths from MSW in the browser, so the example Notes list works with no Service running. To Launch yourself, open `http://localhost:3000/dev#token=dev.dev.dev`, with your own `PORT` in place of `3000`. The client checks only the token's shape and the mocked Service checks nothing, so you land signed in. The account menu shows no Identity, because the Identity comes from the real Service.
+To run with no Service at all:
+
+```bash
+pnpm dev:mock                 # or PORT=<port> pnpm dev:mock
+```
+
+MSW answers the Identity and the Service's paths in the browser, and the dev server runs as SaaS whatever `.env` says. If the port is taken, Vite moves to the next free one. It prints a `Launch:` URL, `http://localhost:<PORT>/dev#token=dev.dev.dev`, built from the port it bound. Open it to land signed in as `dev@example.com`. [`docs/design/README.md`](docs/design/README.md#mock-mode) has the details.
 
 ### Running with Docker
 
@@ -177,7 +183,8 @@ Notes stands in for the Service until yours exists. Remove it once steps 3 and 4
 
 | Script              | Description                                                    |
 | ------------------- | -------------------------------------------------------------- |
-| `pnpm dev`          | Start the dev server with the MSW-backed Service               |
+| `pnpm dev`          | Start the dev server against a real Service                    |
+| `pnpm dev:mock`     | Start the dev server with MSW standing in for the Service      |
 | `pnpm build`        | Build for production into `.output/`                           |
 | `pnpm start`        | Serve the build, reading `.env` if it exists                   |
 | `pnpm test`         | Run the tests once with Vitest                                 |
