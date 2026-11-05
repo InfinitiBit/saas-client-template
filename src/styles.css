@@ -14,10 +14,8 @@
 	--color-secondary: var(--ib-color-text-secondary);
 	--color-link: var(--ib-color-text-link);
 	--color-info-subtle: var(--ib-color-status-info-bg);
-	--color-critical: var(--ib-color-status-critical-text);
 	--radius-lg: var(--ib-radius-lg);
 	--text-body-m: var(--ib-font-size-body-m);
-	--text-body-sm: var(--ib-font-size-body-sm);
 	--text-heading-h1: var(--ib-font-size-heading-h1);
 	--font-weight-semibold: var(--ib-font-weight-semibold);
 }

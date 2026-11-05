@@ -357,11 +357,28 @@ describe('creating a Note', () => {
 		fireEvent.change(title, { target: { value: 'x' } });
 		fireEvent.change(title, { target: { value: '' } });
 		expect(title.getAttribute('aria-invalid')).not.toBe('true');
-		expect(within(dialog).queryByText('Enter a title.')).toBeNull();
+		expect(within(dialog).queryByRole('alert')).toBeNull();
 
 		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
 
 		expect(await within(dialog).findByText('Enter a title.')).toBeTruthy();
+		expect(title.getAttribute('aria-invalid')).toBe('true');
+	});
+
+	it('announces the error on an empty submit, on a title marked required', async () => {
+		server.use(pagedNotes(notes));
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+		const title = within(dialog).getByRole('textbox', { name: 'Title' });
+
+		expect(title.getAttribute('aria-required')).toBe('true');
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+		expect((await within(dialog).findByRole('alert')).textContent).toBe(
+			'Enter a title.',
+		);
 		expect(title.getAttribute('aria-invalid')).toBe('true');
 	});
 

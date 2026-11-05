@@ -9,8 +9,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
+	Field,
 	Input,
-	Label,
 	Textarea,
 } from '@infinitibit_gmbh/ui';
 import { revalidateLogic, useForm } from '@tanstack/react-form';
@@ -23,6 +23,7 @@ import {
 	getListNotesQueryKey,
 	useCreateNote,
 } from '@/features/api/generated/service';
+import { fieldError } from '@/features/notes/lib/field-error';
 import { m } from '@/paraglide/messages';
 
 const TITLE_MAX = 200;
@@ -52,7 +53,11 @@ export function NewNoteDialog() {
 				// The body is a tab stop, so Radix would focus it before the first field.
 				onOpenAutoFocus={(event) => {
 					event.preventDefault();
-					document.getElementById('note-title')?.focus();
+
+					if (event.currentTarget instanceof HTMLElement)
+						event.currentTarget
+							.querySelector<HTMLElement>('[name="title"]')
+							?.focus();
 				}}
 			>
 				{/* Inside the content, so every opening starts from an empty form. */}
@@ -107,34 +112,30 @@ function NewNoteForm({ onCreated }: { onCreated: () => void }) {
 					) : null}
 					<form.Field name="title">
 						{(field) => (
-							<div className="flex flex-col gap-1">
-								<Label htmlFor="note-title">{m.notes_field_title()}</Label>
+							<Field
+								error={fieldError(field)}
+								label={m.notes_field_title()}
+								required
+							>
 								<Input
-									aria-describedby="note-title-error"
-									error={!field.state.meta.isValid}
-									id="note-title"
+									name={field.name}
 									onBlur={field.handleBlur}
 									onChange={(event) => field.handleChange(event.target.value)}
 									value={field.state.value}
 								/>
-								{/* The design system ships no field message, so this one is written from its tokens. */}
-								<p className="text-body-sm text-critical" id="note-title-error">
-									{field.state.meta.errors[0]?.message}
-								</p>
-							</div>
+							</Field>
 						)}
 					</form.Field>
 					<form.Field name="body">
 						{(field) => (
-							<div className="flex flex-col gap-1">
-								<Label htmlFor="note-body">{m.notes_field_body()}</Label>
+							<Field error={fieldError(field)} label={m.notes_field_body()}>
 								<Textarea
-									id="note-body"
+									name={field.name}
 									onBlur={field.handleBlur}
 									onChange={(event) => field.handleChange(event.target.value)}
 									value={field.state.value}
 								/>
-							</div>
+							</Field>
 						)}
 					</form.Field>
 				</div>
