@@ -1,7 +1,13 @@
+import { faker } from '@faker-js/faker';
 import { http, HttpResponse, type RequestHandler } from 'msw';
 import { setupWorker } from 'msw/browser';
 
-import { getExampleServiceMock } from '@/features/api/generated/service.msw';
+import {
+	getCreateNoteMockHandler,
+	getCreateNoteResponseMock,
+	getListNotesMockHandler,
+	getListNotesResponseMock,
+} from '@/features/api/generated/service.msw';
 import { IDENTITY_PATH, type Identity } from '@/features/api/lib/api';
 import {
 	createdNotes,
@@ -27,6 +33,25 @@ export function requestSeed(method: string, url: string) {
 	return hash >>> 0;
 }
 
+// Seeded and drawn with nothing awaited between: faker is shared by every request in flight.
+function seeded<T>(draw: () => T) {
+	return ({ request }: { request: Request }) => {
+		faker.seed(requestSeed(request.method, request.url));
+		// Relative dates count back from now, which moves between runs.
+		faker.setDefaultRefDate('2026-01-01T00:00:00Z');
+
+		return draw();
+	};
+}
+
+/** orval's generated handlers, each answering a request with the same data on every run. */
+export function generatedHandlers() {
+	return [
+		getListNotesMockHandler(seeded(getListNotesResponseMock)),
+		getCreateNoteMockHandler(seeded(getCreateNoteResponseMock)),
+	];
+}
+
 // A glob, not an import: the scenario is git-ignored and usually absent.
 const scenarios = import.meta.glob<RequestHandler[]>('./dev-scenario.ts', {
 	eager: true,
@@ -39,7 +64,7 @@ export function devHandlers(handWritten: RequestHandler[]) {
 		...(scenarios['./dev-scenario.ts'] ?? []),
 		http.get(IDENTITY_PATH, () => HttpResponse.json(devIdentity)),
 		...handWritten,
-		...getExampleServiceMock(),
+		...generatedHandlers(),
 	];
 }
 
