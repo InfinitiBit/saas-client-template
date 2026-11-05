@@ -47,8 +47,8 @@ The QueryClient in `src/router.tsx` sets `retry` and `throwOnError` for queries 
 
 ## Mock at HTTP, never the hooks
 
-orval also generates MSW handlers (`service.msw.ts`) and faker data (`service.faker.ts`).
+orval also generates MSW handlers (`service.msw.ts`) and faker data (`service.faker.ts`). The faker data fills human-text fields from an edge pool and lists from empty to long, on purpose (`docs/design/README.md`).
 
 - Tests stub the Service with those handlers on the shared MSW server (`src/testing/msw.ts`), per test, and drive the real generated client through the rendered router. Never mock a generated hook or module: that tests the mock.
 - A feature that needs its handler to behave like the Service, such as paging, keeps that handler beside it (`src/features/notes/lib/notes-mock.ts`) and uses it in tests and in dev alike.
-- Under `vite dev` a browser worker (`src/features/api/lib/dev-service.ts`) answers the handlers listed there and lets every other request through to the proxy. Once the real Service serves a path, drop its handler from that list.
+- Under `pnpm dev:mock` a browser worker (`src/features/api/lib/dev-service.ts`) answers the Identity, the hand-written handlers listed there, and every other forwarded path from orval's generated handlers, seeded per request (`generatedHandlers()`), and lets any other request through to the proxy. A git-ignored scenario goes ahead of them all (`docs/design/README.md`). Plain `pnpm dev` starts no worker. When `pnpm api:generate` adds an operation, add its handler to `generatedHandlers()`: `src/__tests__/dev-service.test.ts` fails until you do.

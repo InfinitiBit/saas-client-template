@@ -3,7 +3,11 @@ import { http, HttpResponse } from 'msw';
 
 import type { Note } from '@/features/api/generated/service.schemas';
 import { IDENTITY_PATH } from '@/features/api/lib/api';
-import { createdNotes, pagedNotes } from '@/features/notes/lib/notes-mock';
+import {
+	createdNotes,
+	pagedNotes,
+	sampleNotes,
+} from '@/features/notes/lib/notes-mock';
 import { cookieName } from '@/paraglide/runtime';
 import { server } from '@/testing/msw';
 import { renderRouter } from '@/testing/render-router';
@@ -462,4 +466,11 @@ describe('creating a Note', () => {
 			await within(dialog).findByText('Geben Sie einen Titel ein.'),
 		).toBeTruthy();
 	});
+});
+
+test('gives the Notes sample short and long titles from the edge pool', () => {
+	const lengths = sampleNotes().map((note) => note.title.length);
+
+	expect(lengths).toContain(2);
+	expect(lengths).toContain(200);
 });

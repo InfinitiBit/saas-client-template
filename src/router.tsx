@@ -25,9 +25,8 @@ export async function getRouter() {
 	// credentials. A fragment never reaches the server, so this is browser-only.
 	if (!import.meta.env.SSR) await adoptLaunch();
 
-	// `development` is `vite dev` alone: tests run as `test`, and a build
-	// drops the worker and its sample data.
-	if (!import.meta.env.SSR && import.meta.env.MODE === 'development')
+	// `pnpm dev:mock` alone: tests run as `test`, and a build drops the worker and its sample data.
+	if (!import.meta.env.SSR && import.meta.env.MODE === 'mock')
 		await (await import('@/features/api/lib/dev-service')).startDevService();
 
 	// Per router, so one reader's data never lands in another's SSR.

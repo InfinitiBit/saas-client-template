@@ -12,11 +12,19 @@ export const getListNotesResponseMock = (
 	overrideResponse: Partial<Extract<NotePage, object>> = {},
 ): NotePage => ({
 	items: Array.from(
-		{ length: faker.number.int({ min: 1, max: 10 }) },
+		{ length: faker.number.int({ min: 0, max: 100 }) },
 		(_, i) => i + 1,
 	).map(() => ({
 		id: faker.string.uuid(),
-		title: faker.string.alpha({ length: { min: 10, max: 200 } }),
+		title: (function edgeText() {
+			return faker.helpers.arrayElement([
+				() => faker.string.alpha(2),
+				() => `${faker.lorem.sentence(100).slice(0, 199)}.`,
+				() => `${faker.string.alphanumeric(48)}@example.com`,
+				() => 'Müller-Lüdenscheidt GmbH & Co. KG',
+				() => faker.lorem.sentence({ min: 2, max: 6 }),
+			])();
+		})(),
 		body: faker.string.alpha({ length: { min: 10, max: 20 } }),
 		created_at: faker.date.past().toISOString().slice(0, 19) + 'Z',
 	})),
@@ -30,7 +38,15 @@ export const getCreateNoteResponseMock = (
 	overrideResponse: Partial<Extract<Note, object>> = {},
 ): Note => ({
 	id: faker.string.uuid(),
-	title: faker.string.alpha({ length: { min: 10, max: 200 } }),
+	title: (function edgeText() {
+		return faker.helpers.arrayElement([
+			() => faker.string.alpha(2),
+			() => `${faker.lorem.sentence(100).slice(0, 199)}.`,
+			() => `${faker.string.alphanumeric(48)}@example.com`,
+			() => 'Müller-Lüdenscheidt GmbH & Co. KG',
+			() => faker.lorem.sentence({ min: 2, max: 6 }),
+		])();
+	})(),
 	body: faker.string.alpha({ length: { min: 10, max: 20 } }),
 	created_at: faker.date.past().toISOString().slice(0, 19) + 'Z',
 	...overrideResponse,

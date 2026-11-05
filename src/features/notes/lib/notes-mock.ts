@@ -15,10 +15,7 @@ export function sampleNotes() {
 	faker.seed(1);
 
 	return Array.from({ length: 45 }, () =>
-		getCreateNoteResponseMock({
-			title: faker.lorem.sentence({ min: 2, max: 6 }),
-			body: faker.lorem.sentences(2),
-		}),
+		getCreateNoteResponseMock({ body: faker.lorem.sentences(2) }),
 	).sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 

@@ -10,13 +10,13 @@ import type { RequestHandlerOptions } from 'msw';
 import {
 	getCreateNoteResponseMock,
 	getListNotesResponseMock,
-} from './service.faker';
+} from './service.faker.ts';
 import type { Note, NotePage } from './service.schemas';
 
 export {
 	getListNotesResponseMock,
 	getCreateNoteResponseMock,
-} from './service.faker';
+} from './service.faker.ts';
 
 export const getListNotesMockHandler = (
 	overrideResponse?:
