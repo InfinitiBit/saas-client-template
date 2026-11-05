@@ -47,7 +47,7 @@ The QueryClient in `src/router.tsx` sets `retry` and `throwOnError` for queries 
 
 ## Mock at HTTP, never the hooks
 
-orval also generates MSW handlers (`service.msw.ts`) and faker data (`service.faker.ts`).
+orval also generates MSW handlers (`service.msw.ts`) and faker data (`service.faker.ts`). The faker data fills human-text fields from an edge pool and lists from empty to long, on purpose (`docs/design/README.md`).
 
 - Tests stub the Service with those handlers on the shared MSW server (`src/testing/msw.ts`), per test, and drive the real generated client through the rendered router. Never mock a generated hook or module: that tests the mock.
 - A feature that needs its handler to behave like the Service, such as paging, keeps that handler beside it (`src/features/notes/lib/notes-mock.ts`) and uses it in tests and in dev alike.
