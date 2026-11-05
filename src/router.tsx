@@ -25,8 +25,6 @@ export async function getRouter() {
 	// credentials. A fragment never reaches the server, so this is browser-only.
 	if (!import.meta.env.SSR) await adoptLaunch();
 
-	// `mock` is `pnpm dev:mock` alone: `pnpm dev` reaches the real Service, tests
-	// run as `test`, and a build drops the worker and its sample data.
 	if (!import.meta.env.SSR && import.meta.env.MODE === 'mock')
 		await (await import('@/features/api/lib/dev-service')).startDevService();
 

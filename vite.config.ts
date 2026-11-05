@@ -15,8 +15,6 @@ const isVitest = process.env.VITEST === 'true';
 export default defineConfig(({ mode: viteMode }) => {
 	const mock = viteMode === 'mock';
 
-	// Standalone refuses a Launch that skipped `/signin`, so the mocked Launch
-	// runs as SaaS whatever `.env` says.
 	if (mock) process.env.APP_MODE = 'saas';
 
 	return {
@@ -32,8 +30,7 @@ export default defineConfig(({ mode: viteMode }) => {
 		],
 		resolve: { tsconfigPaths: true },
 		// Same `PORT`, and default, as the built server, so the registered Launch URL
-		// holds in dev. Mock mode has no registered URL, so it takes the next free
-		// port and prints its own.
+		// holds in dev.
 		server: {
 			port: Number(loadEnv(viteMode, process.cwd(), '').PORT) || 3000,
 			strictPort: !mock,

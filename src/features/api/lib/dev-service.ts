@@ -15,11 +15,6 @@ const devIdentity: Identity = {
 	permissions: [],
 };
 
-/**
- * Answers the Identity and the Service's paths in the browser under
- * `pnpm dev:mock`, so the template runs with no Service behind the proxy.
- * Anything without a handler goes through to the proxy.
- */
 export async function startDevService() {
 	const notes = sampleNotes();
 
