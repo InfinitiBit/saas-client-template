@@ -42,6 +42,10 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 
 `pnpm lint` (oxlint, type-aware), `pnpm format` (oxfmt), `pnpm type:check`, `pnpm test`, `pnpm build`. Commits are Conventional Commits (`pnpm commit` prompts); branches are `type/slug` or `type/scope/slug`. oxlint and oxfmt replace ESLint and Prettier (ADR 0001).
 
+- No import cycles: `import/no-cycle` refuses them. Break one by moving the shared code into a module both sides import.
+- No hand-written file past 600 lines: `max-lines` refuses it. Split the file by concern.
+- No test that leans on another's leftover state: Vitest's `sequence.shuffle` runs tests in a new order every run.
+
 Pre-commit scans the staged changes for secrets with gitleaks (`.gitleaks.toml`, the default rules) before lint-staged, and fails when gitleaks is not installed (`brew install gitleaks`). An allowlist entry is for a proven false positive and carries a one-line reason.
 
 - The git hooks are the gate. Pre-push checks the branch name, then runs `pnpm check` and `pnpm test`, and fails a run over its 3-minute budget. When it does, speed up the slowest tests that the run lists.

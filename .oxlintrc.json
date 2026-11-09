@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"plugins": ["react", "typescript", "jsx-a11y", "unicorn"],
+	"plugins": ["react", "typescript", "jsx-a11y", "unicorn", "import"],
 	"categories": {
 		"correctness": "off"
 	},
@@ -22,6 +22,7 @@
 	],
 	"rules": {
 		"constructor-super": "error",
+		"max-lines": ["error", { "max": 600 }],
 		"for-direction": "error",
 		"getter-return": "error",
 		"no-async-promise-executor": "error",
@@ -444,7 +445,7 @@
 					}
 				],
 				"import/no-default-export": "error",
-				"import/no-cycle": "off",
+				"import/no-cycle": "error",
 				"typescript/await-thenable": "warn",
 				"typescript/only-throw-error": [
 					"warn",
@@ -454,8 +455,7 @@
 						"allowThrowingUnknown": false
 					}
 				]
-			},
-			"plugins": ["import"]
+			}
 		},
 		{
 			"files": [
@@ -467,8 +467,7 @@
 			],
 			"rules": {
 				"import/no-default-export": "off"
-			},
-			"plugins": ["import"]
+			}
 		},
 		{
 			"files": ["**/*.test.*", "**/__tests__/**"],
