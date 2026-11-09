@@ -41,6 +41,8 @@ export default defineConfig(({ mode: viteMode }) => {
 			env: { TZ: 'UTC' },
 			setupFiles: ['./src/testing/setup.ts'],
 			exclude: [...defaultExclude, '.claude/**'],
+			// Agents otherwise get Vitest's minimal reporter, which hides the slow tests the pre-push budget points to.
+			reporters: ['default'],
 		},
 	};
 });
