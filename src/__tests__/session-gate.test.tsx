@@ -1,9 +1,16 @@
+import { getResponseHeaders } from '@tanstack/react-start/server';
 import { screen } from '@testing-library/react';
 
+import { APPLICATION_NAME } from '@/application';
 import { renderRouter } from '@/testing/render-router';
 import { holdSession, tokenWith } from '@/testing/session';
 
 const APPLICATION = 'The template is running.';
+
+const ENDED = [
+	`__Host-${APPLICATION_NAME}-session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`,
+	`__Host-${APPLICATION_NAME}-refresh=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`,
+];
 
 const now = () => Math.floor(Date.now() / 1000);
 
@@ -60,14 +67,25 @@ it('draws the sign-in card once the token is past its expiry and the leeway', as
 	await expectSignInCard();
 });
 
-it.for([
-	['a token inside the leeway', tokenWith({ exp: now() - 30 }), undefined],
-	['an expired token a refresh token can renew', tokenWith({ exp: 1 }), 'r1'],
-	['a token whose expiry cannot be read', 'not.a-jwt.payload', undefined],
-])('draws the Application for %s', async ([, access, refresh]) => {
-	holdSession(access, refresh);
+it('draws the Application for a token inside the leeway', async () => {
+	holdSession(tokenWith({ exp: now() - 30 }));
 
 	await renderRouter('/');
 
 	expect((await screen.findByRole('status')).textContent).toBe(APPLICATION);
 });
+
+it.for([
+	['a token with no expiry', tokenWith({})],
+	['a token that is not a JWT', 'dev.dev.dev'],
+])(
+	'draws the sign-in card and drops the Session for %s',
+	async ([, access]) => {
+		holdSession(access, 'r-unreadable');
+
+		await renderRouter('/');
+
+		await expectSignInCard();
+		expect(getResponseHeaders().getSetCookie()).toEqual(ENDED);
+	},
+);

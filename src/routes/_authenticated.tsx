@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
-import { getRequest } from '@tanstack/react-start/server';
+import { getRequest, getResponseHeaders } from '@tanstack/react-start/server';
 
 import { SessionGate } from '@/features/auth/components/session-gate';
 import { hasLiveSession } from '@/features/auth/lib/session.server';
@@ -8,7 +8,7 @@ import { Shell } from '@/features/shell/components/shell';
 import { m } from '@/paraglide/messages';
 
 const readLiveSession = createServerFn({ method: 'GET' }).handler(() =>
-	hasLiveSession(getRequest()),
+	hasLiveSession(getRequest(), getResponseHeaders()),
 );
 
 // Every Application Screen sits below this layout, so the first byte already
