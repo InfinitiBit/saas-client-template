@@ -7,6 +7,7 @@ afterEach(() => {
 	vi.unstubAllEnvs();
 });
 
+// Catches: a signed-in user opening the app to a blank page.
 it('draws the home route from the design system', async () => {
 	vi.stubEnv('APP_MODE', 'saas');
 	holdSession();
@@ -18,6 +19,7 @@ it('draws the home route from the design system', async () => {
 	expect(banner.textContent).toBe('The template is running.');
 });
 
+// Catches: a mistyped address showing a blank page or a crash instead of Page not found.
 it('answers an address no route draws with a not-found screen', async () => {
 	vi.stubEnv('APP_MODE', 'saas');
 
@@ -29,6 +31,7 @@ it('answers an address no route draws with a not-found screen', async () => {
 	expect(banner.textContent).toBe('Page not found');
 });
 
+// Catches: a deployment missing APP_MODE booting into a half-working app instead of saying which variable to set.
 it('draws no Application for a deployment that never said its Mode', async () => {
 	vi.stubEnv('APP_MODE', undefined);
 

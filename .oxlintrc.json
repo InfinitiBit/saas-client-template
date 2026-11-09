@@ -22,6 +22,7 @@
 	],
 	"rules": {
 		"constructor-super": "error",
+		"max-lines": ["error", { "max": 600 }],
 		"for-direction": "error",
 		"getter-return": "error",
 		"no-async-promise-executor": "error",
@@ -297,6 +298,7 @@
 		"local/no-jsx-and": "error",
 		"local/layout": "error",
 		"local/feature-boundaries": "error",
+		"local/require-catches-comment": "error",
 		"@tanstack/router/create-route-property-order": "error",
 		"@tanstack/router/route-param-names": "error",
 		"oxc/no-accumulating-spread": "error",
@@ -452,8 +454,7 @@
 						"allowThrowingUnknown": false
 					}
 				]
-			},
-			"plugins": ["import"]
+			}
 		},
 		{
 			"files": [
@@ -465,8 +466,7 @@
 			],
 			"rules": {
 				"import/no-default-export": "off"
-			},
-			"plugins": ["import"]
+			}
 		},
 		{
 			"files": ["**/*.test.*", "**/__tests__/**"],

@@ -13,7 +13,7 @@ const oxlintrcSchema = z.object({
 	settings: z.record(z.string(), z.unknown()),
 });
 
-// Runs oxlint over `src/` with only `rule` on, set as `.oxlintrc.json` sets it.
+// Runs oxlint over the repo, as `pnpm lint` does, with only `rule` on, set as `.oxlintrc.json` sets it.
 // The config is written outside the repo, so its plugin path is absolute and its ignores move to the CLI, which resolves them from the root.
 export function lintSource(rule: string) {
 	const config = oxlintrcSchema.parse(
@@ -32,7 +32,13 @@ export function lintSource(rule: string) {
 		file,
 		JSON.stringify({
 			categories: { correctness: 'off' },
-			jsPlugins: [join(root, 'lint/plugin.ts')],
+			jsPlugins: [
+				join(root, 'lint/plugin.ts'),
+				{
+					name: 'anti-slop',
+					specifier: join(root, 'lint/anti-slop/index.ts'),
+				},
+			],
 			rules: { [rule]: setting },
 			settings: config.settings,
 		}),
@@ -48,7 +54,7 @@ export function lintSource(rule: string) {
 					'--ignore-pattern',
 					pattern,
 				]),
-				'src',
+				'.',
 			],
 			{ cwd: root, encoding: 'utf8' },
 		);

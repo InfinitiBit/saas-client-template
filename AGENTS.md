@@ -44,13 +44,17 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 
 ## Data
 
-- Screens call the orval-generated hooks directly; a feature hook only when shared or composite. Invalidate inline by the generated key prefix. Errors are handled centrally. Tests mock the Service at HTTP with MSW, never the hooks. See `docs/agents/data-fetching.md`.
+- Screens call the orval-generated hooks directly; a feature hook only when shared or composite. Invalidate inline by the generated key prefix. Errors are handled centrally. Tests mock the Service at HTTP with MSW, never the hooks. A test never fakes app code: `anti-slop/no-module-mocking` refuses `vi.mock`, and `vi.spyOn` on or assignment onto anything imported through `@/` or a relative path; browser globals go through `vi.stubGlobal`. See `docs/agents/data-fetching.md`.
 - Regenerate with `pnpm api:generate`; never edit `src/features/api/generated/`. `pnpm check` regenerates from the committed `openapi.yaml` and fails on any difference.
 - A feature's hand-written mock lives in its `lib/<feature>-mock.ts`; it serves `pnpm dev:mock` through the router and stands in for the Service in that feature's Screen tests.
 
 ## Checks
 
 `pnpm lint` (oxlint, type-aware), `pnpm format` (oxfmt), `pnpm type:check`, `pnpm test`, `pnpm build`. Commits are Conventional Commits (`pnpm commit` prompts); branches are `type/slug` or `type/scope/slug`. oxlint and oxfmt replace ESLint and Prettier (ADR 0001).
+
+- No import cycles: `import/no-cycle` refuses them. Break one by moving the shared code into a module both sides import.
+- No hand-written file past 600 lines: `max-lines` refuses it. Split the file by concern.
+- No test that leans on another's leftover state: Vitest's `sequence.shuffle` runs tests in a new order every run.
 
 Pre-commit scans the staged changes for secrets with gitleaks (`.gitleaks.toml`, the default rules) before lint-staged, and fails when gitleaks is not installed (`brew install gitleaks`). An allowlist entry is for a proven false positive and carries a one-line reason.
 
@@ -66,7 +70,9 @@ Tests drive the client through one of two seams, with every upstream stubbed by 
 
 Tests run without Start's compiler, so `createServerFn` handlers run in-process (`src/testing/setup.ts`) and read the `process.env` a test stubs with `vi.stubEnv`. Their `getRequest()` is jsdom's address and `document.cookie`, which `holdSession()` (`src/testing/session.ts`) fills and every test starts without. What they add to the document response, such as a renewed Session's `Set-Cookie`, is read back with `getResponseHeaders()`. The shim models `.handler()` only; extend it when a server function first needs `.inputValidator()` or middleware.
 
-A local lint rule lives in `lint/plugin.ts` as a thin visitor around an exported pure decision function, and is tested in `lint/<rule>.test.ts`: a table test of the function with invented names (oxlint's `RuleTester` when its input is an AST node), and a smoke run, `lintSource('local/<rule>')` in `lint/lint-source.ts`, that lints the real `src/` with only that rule and expects exit 0.
+A local lint rule lives in `lint/plugin.ts` as a thin visitor around an exported pure decision function, and is tested in `lint/<rule>.test.ts`: a table test of the function with invented names (oxlint's `RuleTester` when its input is an AST node), and a smoke run, `lintSource('local/<rule>')` in `lint/lint-source.ts`, that lints the real repo with only that rule and expects exit 0.
+
+Every test names the bug it catches: a `// Catches: <the bug a user would hit>` line directly above its `it` or `test` call, `.each` and `.for` included. A test that cannot name one is tautological, and it costs more than it protects: if you cannot name the bug, do not write the test. `local/require-catches-comment` enforces this.
 
 ## Agent skills
 
