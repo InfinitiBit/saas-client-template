@@ -15,11 +15,11 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 
 ## Layout
 
-- Code a feature owns lives under `src/features/<feature>/`, split into `components/`, `hooks/` and `lib/` as the feature needs them. Split a large feature into `src/features/<feature>/<subfeature>/` only when it grows enough to need it.
+- Code a feature owns lives under `src/features/<feature>/`, split into `components/`, `hooks/` and `lib/` as the feature needs them. Split a large feature into `src/features/<feature>/<subfeature>/` only when it grows enough to need it. A feature's direct children are only those folders, `generated/` in `api`, subfeature folders (each split the same way) and, in a feature other than the template features `api`, `auth`, `brand` and `shell`, `index.ts`. `local/layout` enforces this; its `templateFeatures` option in `.oxlintrc.json` lists the template features.
 - Route files stay in `src/routes/` and stay thin: they import behaviour from a feature instead of owning it.
 - Put a component in the narrowest folder that owns it. It moves to `src/components/` only when a second feature really needs it.
 - A barrel file only for a component with its own subcomponents, exporting only what other files call.
-- Server-only modules keep the `.server.ts` suffix and live inside the feature they belong to. There is no `src/server/` folder.
+- Server-only modules keep the `.server.ts` suffix and live inside the feature they belong to, or at the `src/` root when app-wide. There is no `src/server/` folder. `local/layout` enforces both.
 - Only app-wide entry points and configuration stay at the `src/` root.
 
 ## UI
