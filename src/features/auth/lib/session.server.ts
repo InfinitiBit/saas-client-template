@@ -86,22 +86,33 @@ const LEEWAY_SECONDS = 60;
 
 const claimsSchema = z.object({ exp: z.number() });
 
-/** Whether the request holds a live Session; changes to it go on `response`. */
-export function hasLiveSession(request: Request, response: CookieSink) {
-	const { access } = readSession(request);
+/**
+ * Whether the request holds a live Session, renewing an expired one first.
+ * Changes to the Session go on `response`, ahead of the first proxied call.
+ */
+export async function hasLiveSession(request: Request, response: CookieSink) {
+	const { access, refresh } = readSession(request);
 
 	if (access === null) return false;
 
 	const expiry = expiryOf(access);
 
-	// Every Launch format token carries `exp` (ADR 0010).
-	if (expiry === null) {
+	if (expiry !== null && expiry + LEEWAY_SECONDS > Date.now() / 1000)
+		return true;
+
+	// Every token in the Launch format carries `exp` (ADR 0010).
+	const renewed =
+		expiry !== null && refresh !== null ? await renewSession(refresh) : null;
+
+	if (renewed === null) {
 		dropSession(response);
 
 		return false;
 	}
 
-	return expiry + LEEWAY_SECONDS > Date.now() / 1000;
+	holdSession(response, renewed);
+
+	return true;
 }
 
 function expiryOf(token: string) {
