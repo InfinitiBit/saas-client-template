@@ -1,7 +1,6 @@
-import { lintSource } from './lint-source';
 import { layoutViolation } from './plugin';
 
-const templateFeatures = ['api', 'auth', 'brand', 'shell'];
+const templateFeatures = ['kernel', 'identity', 'theme'];
 
 const rows = [
 	['src/server/session.ts', 'serverFolder'],
@@ -9,7 +8,7 @@ const rows = [
 	['src/server.ts', null],
 	['src/env.server.ts', null],
 	['src/features/orders/lib/orders.server.ts', null],
-	['src/features/auth/lib/session.server.ts', null],
+	['src/features/identity/lib/session.server.ts', null],
 	['src/routes/orders.server.ts', 'serverModule'],
 	['src/components/table.server.ts', 'serverModule'],
 	['src/testing/session.server.ts', 'serverModule'],
@@ -22,7 +21,7 @@ const rows = [
 	['src/features/orders/billing/lib/totals.ts', null],
 	['src/features/api/generated/service.ts', null],
 	['src/features/orders/generated/service.ts', 'featureFolder'],
-	['src/features/auth/index.ts', 'featureFolder'],
+	['src/features/identity/index.ts', 'featureFolder'],
 	['src/features/orders/orders.ts', 'featureFolder'],
 	['src/features/orders/index.tsx', 'featureFolder'],
 	['src/features/orders/utils/format.ts', 'featureFolder'],
@@ -37,11 +36,4 @@ const rows = [
 // Catches: a file landing in a second home (`src/server/`, a stray `.server.ts`, a loose file or `utils/` in a feature) without lint saying so, or lint refusing a file that sits where AGENTS.md → Layout puts it.
 it.each(rows)('%s → %s', (file, expected) => {
 	expect(layoutViolation(file, templateFeatures)).toBe(expected);
-});
-
-// Catches: `pnpm lint` silently skipping the rule or dropping its template-feature option, or app code that already breaks the layout.
-it('local/layout passes over the real source', () => {
-	const { status, stdout, stderr } = lintSource('local/layout');
-
-	expect(status, stdout + stderr).toBe(0);
 });

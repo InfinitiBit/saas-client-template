@@ -1,6 +1,5 @@
 import { RuleTester } from 'oxlint/plugins-dev';
 
-import { lintSource } from './lint-source';
 import { requireCatchesComment } from './plugin';
 
 const catches = '// Catches: a renamed Note showing its old title\n';
@@ -59,13 +58,4 @@ new RuleTester().run('require-catches-comment', requireCatchesComment, {
 			errors: [missing('renames')],
 		},
 	],
-});
-
-// Catches: `pnpm lint` silently skipping the rule, or a test already in the repo that names no bug.
-it('local/require-catches-comment passes over the real source', () => {
-	const { status, stdout, stderr } = lintSource(
-		'local/require-catches-comment',
-	);
-
-	expect(status, stdout + stderr).toBe(0);
 });

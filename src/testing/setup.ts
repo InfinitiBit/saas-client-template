@@ -1,4 +1,5 @@
 import { getRequest } from '@tanstack/react-start/server';
+import { configure } from '@testing-library/react';
 import { toast } from 'sonner';
 
 import { server } from './msw';
@@ -31,6 +32,9 @@ vi.mock('@tanstack/react-start/server', async (importOriginal) => ({
 if (typeof window !== 'undefined') {
 	window.scrollTo = () => undefined;
 }
+
+// The pre-push gate runs the suite on a busy dev machine, where a page can take seconds to draw; 1 s flakes.
+configure({ asyncUtilTimeout: 5000 });
 
 beforeAll(() => {
 	server.listen({ onUnhandledFrame: 'error' });

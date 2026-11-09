@@ -1,29 +1,50 @@
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { z } from 'zod';
 
-const root = join(import.meta.dirname, '..');
+import { root } from './repo';
+
+const resolvePlugin = createRequire(join(root, 'package.json')).resolve;
+
+function absolute(specifier: string) {
+	return specifier.startsWith('.')
+		? join(root, specifier)
+		: resolvePlugin(specifier);
+}
 
 const oxlintrcSchema = z.object({
 	ignorePatterns: z.array(z.string()),
 	rules: z.record(z.string(), z.unknown()),
+	jsPlugins: z.array(
+		z.union([
+			z.string().transform(absolute),
+			z
+				.object({ name: z.string(), specifier: z.string() })
+				.transform((plugin) => ({
+					...plugin,
+					specifier: absolute(plugin.specifier),
+				})),
+		]),
+	),
 	settings: z.record(z.string(), z.unknown()),
 });
 
-// Runs oxlint over the repo, as `pnpm lint` does, with only `rule` on, set as `.oxlintrc.json` sets it.
-// The config is written outside the repo, so its plugin path is absolute and its ignores move to the CLI, which resolves them from the root.
-export function lintSource(rule: string) {
+// Runs oxlint over the repo with only `rules` on, each set as `.oxlintrc.json` sets it, with its plugins and settings.
+// It leaves out the type-aware pass, `overrides` and `--deny-warnings`, so it proves the rules load and pass, not all of `pnpm lint`.
+// The config is written outside the repo, so its plugin paths are absolute and its ignores move to the CLI, which resolves them from the root.
+export function lintSource(rules: readonly string[]) {
 	const config = oxlintrcSchema.parse(
 		JSON.parse(readFileSync(join(root, '.oxlintrc.json'), 'utf8')),
 	);
 
-	const setting = config.rules[rule];
+	const missing = rules.filter((rule) => config.rules[rule] === undefined);
 
-	if (setting === undefined)
-		throw new Error(`${rule} is not configured in .oxlintrc.json`);
+	if (missing.length > 0)
+		throw new Error(`${missing.join(', ')} not configured in .oxlintrc.json`);
 
 	const dir = mkdtempSync(join(tmpdir(), 'oxlint-'));
 	const file = join(dir, 'oxlintrc.json');
@@ -32,14 +53,10 @@ export function lintSource(rule: string) {
 		file,
 		JSON.stringify({
 			categories: { correctness: 'off' },
-			jsPlugins: [
-				join(root, 'lint/plugin.ts'),
-				{
-					name: 'anti-slop',
-					specifier: join(root, 'lint/anti-slop/index.ts'),
-				},
-			],
-			rules: { [rule]: setting },
+			jsPlugins: config.jsPlugins,
+			rules: Object.fromEntries(
+				rules.map((rule) => [rule, config.rules[rule]]),
+			),
 			settings: config.settings,
 		}),
 	);

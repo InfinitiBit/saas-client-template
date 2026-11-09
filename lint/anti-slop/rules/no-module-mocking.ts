@@ -63,6 +63,11 @@ function isAppImport(sourceCode: SourceCode, expression: ESTree.Argument): boole
   });
 }
 
+// App code may write to its own module state; only a test doing it fakes the app.
+function isTestFile(filename: string): boolean {
+  return /\.test\.|(^|[\\/])__tests__[\\/]/.test(filename);
+}
+
 /** Ban test framework module mocking, and spying on or assigning onto app imports, in favor of real dependency seams. */
 export const noModuleMockingRule = defineRule({
   meta: {
@@ -87,6 +92,7 @@ export const noModuleMockingRule = defineRule({
           context.report({ node, messageId: "moduleMock" });
         } else if (
           method === "spyOn" &&
+          isTestFile(context.filename) &&
           node.arguments[0] !== undefined &&
           isAppImport(context.sourceCode, node.arguments[0])
         ) {
@@ -94,7 +100,11 @@ export const noModuleMockingRule = defineRule({
         }
       },
       AssignmentExpression(node) {
-        if (node.left.type === "MemberExpression" && isAppImport(context.sourceCode, node.left)) {
+        if (
+          node.left.type === "MemberExpression" &&
+          isTestFile(context.filename) &&
+          isAppImport(context.sourceCode, node.left)
+        ) {
           context.report({ node, messageId: "appFake" });
         }
       },

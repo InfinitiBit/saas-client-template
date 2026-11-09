@@ -1,4 +1,4 @@
-import { join, posix, relative, sep } from 'node:path';
+import { posix } from 'node:path';
 
 import {
 	defineRule,
@@ -7,6 +7,8 @@ import {
 	type Settings,
 } from '@oxlint/plugins';
 import { z } from 'zod';
+
+import { repoPath } from './repo.ts';
 
 export function isJsxAnd(node: ESTree.LogicalExpression) {
 	return (
@@ -45,8 +47,6 @@ const localSettings = z.object({
 function templateFeatures(settings: Readonly<Settings>) {
 	return localSettings.parse(settings).local.templateFeatures;
 }
-
-const root = join(import.meta.dirname, '..');
 
 const featureFolders = new Set(['components', 'hooks', 'lib']);
 
@@ -104,7 +104,7 @@ export const layout = defineRule({
 		},
 	},
 	create(context) {
-		const file = relative(root, context.filename).split(sep).join('/');
+		const file = repoPath(context.filename);
 		const messageId = layoutViolation(file, templateFeatures(context.settings));
 
 		return {
@@ -195,7 +195,7 @@ export const featureBoundaries = defineRule({
 		},
 	},
 	create(context) {
-		const file = relative(root, context.filename).split(sep).join('/');
+		const file = repoPath(context.filename);
 		const features = templateFeatures(context.settings);
 
 		const check = (source: ESTree.Expression) => {

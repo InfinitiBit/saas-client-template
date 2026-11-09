@@ -84,7 +84,7 @@ Tests run without Start's compiler, so `createServerFn` handlers run in-process 
 
 Every test names the bug it catches: a `// Catches: <the bug a user would hit>` line directly above its `it` or `test` call, `.each` and `.for` included. A test that cannot name one is tautological, and it costs more than it protects: if you cannot name the bug, do not write the test. `local/require-catches-comment` enforces this.
 
-A local lint rule lives in `lint/plugin.ts` as a thin visitor around an exported pure decision function, and is tested in `lint/<rule>.test.ts`: a table test of the function with invented names (oxlint's `RuleTester` when its input is an AST node), and a smoke run, `lintSource('local/<rule>')` in `lint/lint-source.ts`, that lints the real repo with only that rule and expects exit 0.
+A local lint rule lives in `lint/plugin.ts` as a thin visitor around an exported pure decision function, and is tested in `lint/<rule>.test.ts` by a table test of the function with invented names (oxlint's `RuleTester` when its input is an AST node). Every local rule, and each vendored rule this repo changes, is also listed in the one smoke test, `lint/smoke.test.ts`, which lints the real repo once with only those rules on and expects exit 0.
 
 ## Comments that must stay
 
@@ -107,7 +107,7 @@ Review holds these. A new rule that nothing enforces goes on this list; when a c
 - Data: each feature's dev handlers are wired in `src/router.tsx`.
 - Data: `openapi.yaml` matches the live Service. `pnpm api:check` only proves the generated client matches the committed file.
 - Checks: a gitleaks allowlist entry carries its one-line reason.
-- Checks: a local lint rule keeps the pure-function shape and its two tests.
+- Checks: a local lint rule keeps the pure-function shape and its table test, and is listed in `lint/smoke.test.ts`.
 
 ## Agent skills
 
