@@ -1,4 +1,6 @@
 pattern='^(main|stage|dev)$|^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)/[a-z0-9-]+(/[a-z0-9-]+)?$'
+budget=180
+gate=
 
 while read -r _ local_sha remote_ref _; do
 	case $remote_ref in refs/heads/*) ;; *) continue ;; esac
@@ -10,4 +12,16 @@ while read -r _ local_sha remote_ref _; do
 		echo "Branch '$branch' is not type/slug or type/scope/slug, e.g. feat/notes/create-dialog." >&2
 		exit 1
 	fi
+	gate=1
 done
+
+[ -n "$gate" ] || exit 0
+
+started=$(date +%s)
+pnpm check && pnpm test || exit 1
+elapsed=$(($(date +%s) - started))
+
+if [ "$elapsed" -gt "$budget" ]; then
+	echo "Pre-push budget exceeded: pnpm check and the tests took ${elapsed} s, over ${budget} s. Speed up the slowest tests (listed above) before pushing." >&2
+	exit 1
+fi

@@ -457,7 +457,7 @@
 			"files": [
 				"*.config.ts",
 				"*.config.mjs",
-				"lint/plugin.js",
+				"lint/plugin.ts",
 				"src/nitro/**",
 				"src/server.ts"
 			],
@@ -580,7 +580,7 @@
 	"jsPlugins": [
 		"@shadcn/lint",
 		"@tanstack/eslint-plugin-router",
-		"./lint/plugin.js",
+		"./lint/plugin.ts",
 		{
 			"name": "anti-slop",
 			"specifier": "./lint/anti-slop/index.ts"
