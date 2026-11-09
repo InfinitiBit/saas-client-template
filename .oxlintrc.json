@@ -300,6 +300,7 @@
 			"error",
 			{ "templateFeatures": ["api", "auth", "brand", "shell"] }
 		],
+		"local/require-catches-comment": "error",
 		"@tanstack/router/create-route-property-order": "error",
 		"@tanstack/router/route-param-names": "error",
 		"oxc/no-accumulating-spread": "error",

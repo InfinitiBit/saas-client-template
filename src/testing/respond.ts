@@ -14,11 +14,7 @@ type Handlers = Partial<Record<string, Handler | { handler?: Handler }>>;
  * Calls a server route's handler for `request.method` the way Start would, and
  * hands back its Response. Route middleware does not run.
  */
-export async function respond(
-	route: AnyRoute,
-	request: Request,
-	params: Record<string, string> = {},
-) {
+export async function respond(route: AnyRoute, request: Request) {
 	// SAFETY: Start keeps a server route's handlers under `options.server`,
 	// which `AnyRoute` leaves untyped.
 	const handlers = (route.options as { server?: { handlers?: Handlers } })
@@ -35,7 +31,7 @@ export async function respond(
 		next: () => {
 			throw new Error('respond() does not run middleware');
 		},
-		params,
+		params: {},
 		pathname: new URL(request.url).pathname,
 		request,
 	});

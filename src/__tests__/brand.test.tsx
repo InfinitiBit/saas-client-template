@@ -13,6 +13,7 @@ afterEach(() => {
 	vi.unstubAllEnvs();
 });
 
+// Catches: a Brand's deployment rendering in another Brand's colours because the theme was not set on the document.
 it.for(['default', 'gt'])('dresses the document as %s', async (brand) => {
 	vi.stubEnv('APP_BRAND', brand);
 
@@ -21,6 +22,7 @@ it.for(['default', 'gt'])('dresses the document as %s', async (brand) => {
 	expect(document.documentElement.dataset.theme).toBe(brand);
 });
 
+// Catches: a GT deployment showing the InfinitiBit logo or favicon, or the other way round.
 it.for([
 	['default', 'InfinitiBit'],
 	['gt', 'Grant Thornton'],
@@ -37,6 +39,7 @@ it.for([
 	);
 });
 
+// Catches: a Brand shipping with a missing favicon, logo or mark, so the browser shows a broken image.
 it.for(brands)('ships every %s asset', (brand) => {
 	expect(readdirSync(`public/brand/${brand}`).sort()).toEqual([
 		'favicon.ico',
@@ -45,6 +48,7 @@ it.for(brands)('ships every %s asset', (brand) => {
 	]);
 });
 
+// Catches: an unset, empty or unknown APP_BRAND leaving the app unthemed instead of on the default Brand.
 it.for([undefined, '', 'GT', 'acme'])(
 	'falls back to the default Brand when APP_BRAND is %j',
 	async (value) => {
