@@ -89,15 +89,11 @@ const claimsSchema = z.object({ exp: z.number() });
 // Start's response headers type `append` too narrowly to be a `Headers`.
 type CookieSink = Pick<Headers, 'append'>;
 
-// The renewed pair goes on `response`, so the browser holds it before its
-// first proxied call.
-export async function hasLiveSession(request: Request, response: CookieSink) {
+export async function settleSession(request: Request, response: CookieSink) {
 	const { access, refresh } = readSession(request);
 
 	if (access === null) return false;
 
-	// Null when unreadable; every token in the Launch format carries `exp`
-	// (ADR 0010).
 	const expiry = expiryOf(access);
 
 	if (expiry !== null && expiry + LEEWAY_SECONDS > Date.now() / 1000)

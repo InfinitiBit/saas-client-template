@@ -45,8 +45,6 @@ export default defineConfig(({ mode: viteMode }) => {
 	};
 });
 
-// In the Launch format (ADR 0010) and the platform's claim shape, alive until
-// 2100. Unsigned, because nothing in mock mode verifies it.
 const DEV_TOKEN = [
 	{ alg: 'none', typ: 'JWT' },
 	{
