@@ -50,6 +50,8 @@ Tests drive the client through one of two seams, with every upstream stubbed by 
 
 Tests run without Start's compiler, so `createServerFn` handlers run in-process (`src/testing/setup.ts`) and read the `process.env` a test stubs with `vi.stubEnv`. Their `getRequest()` is jsdom's address and `document.cookie`, which `holdSession()` (`src/testing/session.ts`) fills and every test starts without. What they add to the document response, such as a renewed Session's `Set-Cookie`, is read back with `getResponseHeaders()`. The shim models `.handler()` only; extend it when a server function first needs `.inputValidator()` or middleware.
 
+A local lint rule lives in `lint/plugin.ts` as a thin visitor around an exported pure decision function, and is tested in `lint/<rule>.test.ts`: a table test of the function with invented names (oxlint's `RuleTester` when its input is an AST node), and a smoke run, `lintSource('local/<rule>')` in `lint/lint-source.ts`, that lints the real `src/` with only that rule and expects exit 0.
+
 ## Agent skills
 
 ### Issue tracker
