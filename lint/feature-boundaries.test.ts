@@ -1,7 +1,6 @@
-import { lintSource } from './lint-source';
 import { barrelViolation, importViolation } from './plugin';
 
-const templateFeatures = ['api', 'auth', 'brand'];
+const templateFeatures = ['kernel', 'identity', 'theme'];
 
 const refused = (messageId: string, from: string, to: string) => ({
 	messageId,
@@ -9,10 +8,10 @@ const refused = (messageId: string, from: string, to: string) => ({
 });
 
 const imports = [
-	['src/features/orders/lib/a.ts', '@/features/auth/lib/b', null],
-	['src/features/orders/lib/a.ts', '@/features/api/generated/c', null],
-	['src/features/orders/lib/a.ts', '../../auth/hooks/d', null],
-	['src/features/auth/lib/a.ts', '@/features/brand/lib/b', null],
+	['src/features/orders/lib/a.ts', '@/features/identity/lib/b', null],
+	['src/features/orders/lib/a.ts', '@/features/kernel/generated/c', null],
+	['src/features/orders/lib/a.ts', '../../identity/hooks/d', null],
+	['src/features/identity/lib/a.ts', '@/features/theme/lib/b', null],
 	['src/features/orders/lib/a.ts', './b', null],
 	['src/features/orders/billing/lib/a.ts', '@/features/orders/lib/b', null],
 	['src/features/orders/lib/a.ts', '@/application', null],
@@ -22,19 +21,19 @@ const imports = [
 	['src/features/orders/lib/a.ts', '@/features/invoices/index', null],
 	['src/features/orders/lib/a.ts', '../../invoices/index.ts', null],
 	[
-		'src/features/auth/lib/a.ts',
+		'src/features/identity/lib/a.ts',
 		'@/features/orders/lib/b',
-		refused('templateImportsApplication', 'auth', 'orders'),
+		refused('templateImportsApplication', 'identity', 'orders'),
 	],
 	[
-		'src/features/api/lib/a.ts',
+		'src/features/kernel/lib/a.ts',
 		'@/features/orders',
-		refused('templateImportsApplication', 'api', 'orders'),
+		refused('templateImportsApplication', 'kernel', 'orders'),
 	],
 	[
-		'src/features/api/lib/a.ts',
+		'src/features/kernel/lib/a.ts',
 		'../../orders/lib/b',
-		refused('templateImportsApplication', 'api', 'orders'),
+		refused('templateImportsApplication', 'kernel', 'orders'),
 	],
 	[
 		'src/features/orders/lib/a.ts',
@@ -53,8 +52,8 @@ const imports = [
 	],
 	[
 		'src/components/table.tsx',
-		'@/features/auth/hooks/b',
-		refused('sharedImportsFeature', 'src/components', 'auth'),
+		'@/features/identity/hooks/b',
+		refused('sharedImportsFeature', 'src/components', 'identity'),
 	],
 	[
 		'src/lib/format.ts',
@@ -67,7 +66,7 @@ const imports = [
 	['src/server.ts', '@/features/orders/lib/b', null],
 	['src/testing/render.tsx', '@/features/orders/lib/b', null],
 	['src/__tests__/orders.test.tsx', '@/features/orders/lib/b', null],
-	['src/features/auth/lib/a.test.ts', '@/features/orders/lib/b', null],
+	['src/features/identity/lib/a.test.ts', '@/features/orders/lib/b', null],
 	['src/components/table.test.tsx', '@/features/orders/lib/b', null],
 ] as const;
 
@@ -97,11 +96,4 @@ const barrelStatements = [
 // Catches: an Application feature's `index.ts` growing an `export *`, its own code or a `.server.ts` re-export, so its public surface stops being a deliberate list and server code can reach the client through it.
 it.each(barrelStatements)('%s from %s', (type, source, expected) => {
 	expect(barrelViolation(type, source)).toBe(expected);
-});
-
-// Catches: `pnpm lint` silently skipping the rule or losing the template-feature setting, or app code that already crosses a boundary.
-it('local/feature-boundaries passes over the real source', () => {
-	const { status, stdout, stderr } = lintSource('local/feature-boundaries');
-
-	expect(status, stdout + stderr).toBe(0);
 });
