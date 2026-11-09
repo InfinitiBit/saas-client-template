@@ -1,7 +1,17 @@
 name: CI
 
 on:
+  pull_request:
+  push:
+    branches: [dev]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
@@ -14,8 +24,6 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm format:check
-      - run: pnpm type:check
+      - run: pnpm check
       - run: pnpm test
       - run: pnpm build
