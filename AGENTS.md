@@ -41,6 +41,10 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 
 `pnpm lint` (oxlint, type-aware), `pnpm format` (oxfmt), `pnpm type:check`, `pnpm test`, `pnpm build`. Commits are Conventional Commits (`pnpm commit` prompts); branches are `type/slug` or `type/scope/slug`. oxlint and oxfmt replace ESLint and Prettier (ADR 0001).
 
+- No import cycles: `import/no-cycle` refuses them. Break one by moving the shared code into a module both sides import.
+- No hand-written file past 600 lines: `max-lines` refuses it. Split the file by concern.
+- No test that leans on another's leftover state: Vitest's `sequence.shuffle` runs tests in a new order every run.
+
 Tests drive the client through one of two seams, with every upstream stubbed by MSW (`src/testing/msw.ts`); an undeclared request fails the test:
 
 - a server route called as `Request` → `Response`: `respond()` in `src/testing/respond.ts`;

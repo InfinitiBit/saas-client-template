@@ -41,6 +41,7 @@ export default defineConfig(({ mode: viteMode }) => {
 			env: { TZ: 'UTC' },
 			setupFiles: ['./src/testing/setup.ts'],
 			exclude: [...defaultExclude, '.claude/**'],
+			sequence: { shuffle: true },
 		},
 	};
 });
