@@ -23,7 +23,7 @@ const isSessionError = (error: Error) => sessionGate.parse(error) !== null;
 export async function getRouter() {
 	// Before the router reads the address bar, so no screen ever sees the
 	// credentials. A fragment never reaches the server, so this is browser-only.
-	if (!import.meta.env.SSR) await adoptLaunch();
+	const adopted = !import.meta.env.SSR && (await adoptLaunch());
 
 	// `pnpm dev:mock` alone: tests run as `test`, and a build drops the worker and its sample data.
 	if (!import.meta.env.SSR && import.meta.env.MODE === 'mock')
@@ -48,6 +48,17 @@ export async function getRouter() {
 	});
 
 	setupRouterSsrQueryIntegration({ router, queryClient });
+
+	// The server drew this document before the Launch reached it, so the
+	// layout's kept Session answer is the one from before (ADR 0007).
+	if (adopted) {
+		const stop = router.subscribe('onRendered', () => {
+			stop();
+			void router.invalidate({
+				filter: (match) => match.routeId === '/_authenticated',
+			});
+		});
+	}
 
 	return router;
 }

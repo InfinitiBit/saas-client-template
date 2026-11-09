@@ -1,3 +1,4 @@
+import { getRequest } from '@tanstack/react-start/server';
 import { toast } from 'sonner';
 
 import { server } from './msw';
@@ -12,12 +13,14 @@ vi.mock('@tanstack/react-start', async (importOriginal) => ({
 }));
 
 // The request a server function sees is the browser's: jsdom's address and
-// cookie jar.
+// cookie jar. A `vi.fn`, so a test can answer as the server did before the
+// browser held the cookie.
 // oxlint-disable-next-line anti-slop/no-module-mocking
 vi.mock('@tanstack/react-start/server', async (importOriginal) => ({
 	...(await importOriginal<typeof import('@tanstack/react-start/server')>()),
-	getRequest: () =>
-		new Request(location.href, { headers: { cookie: document.cookie } }),
+	getRequest: vi.fn(
+		() => new Request(location.href, { headers: { cookie: document.cookie } }),
+	),
 }));
 
 // jsdom lays nothing out and leaves `scrollTo` unimplemented; the router calls
@@ -32,6 +35,7 @@ beforeAll(() => {
 
 afterEach(() => {
 	server.resetHandlers();
+	vi.mocked(getRequest).mockReset();
 	// sonner holds its toasts at module scope, past the Toaster that drew them.
 	toast.dismiss();
 
