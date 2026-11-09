@@ -295,6 +295,7 @@
 		"typescript/prefer-regexp-exec": "error",
 		"typescript/prefer-string-starts-ends-with": "error",
 		"local/no-jsx-and": "error",
+		"local/require-catches-comment": "error",
 		"@tanstack/router/create-route-property-order": "error",
 		"@tanstack/router/route-param-names": "error",
 		"oxc/no-accumulating-spread": "error",

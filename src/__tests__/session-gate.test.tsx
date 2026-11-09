@@ -43,12 +43,14 @@ async function expectSignInCard() {
 	expect(screen.queryByText(APPLICATION)).toBeNull();
 }
 
+// Catches: a signed-out visitor seeing the Application, or a crash, instead of the sign-in card.
 it('draws the sign-in card instead of the Application to a visitor with no Session', async () => {
 	await renderRouter('/');
 
 	await expectSignInCard();
 });
 
+// Catches: the sign-in button pointing somewhere other than /signin, or offering Microsoft sign-in to a SaaS user and the portal to a Standalone one.
 it.for([
 	['saas', 'Open tenant portal'],
 	['standalone', 'Sign in with Microsoft'],
@@ -65,6 +67,7 @@ it.for([
 	},
 );
 
+// Catches: a signed-in user being shown the sign-in card.
 it('draws the Application for a live Session', async () => {
 	holdSession(tokenWith({ exp: now() + 300 }));
 
@@ -73,6 +76,7 @@ it('draws the Application for a live Session', async () => {
 	expect((await screen.findByRole('status')).textContent).toBe(APPLICATION);
 });
 
+// Catches: a long-expired token still drawing the Application, so every call then fails.
 it('draws the sign-in card once the token is past its expiry and the leeway', async () => {
 	holdSession(tokenWith({ exp: now() - 61 }));
 
@@ -81,6 +85,7 @@ it('draws the sign-in card once the token is past its expiry and the leeway', as
 	await expectSignInCard();
 });
 
+// Catches: a user whose clock is a few seconds ahead being bounced to sign in with a token the Service still accepts.
 it('draws the Application for a token inside the leeway', async () => {
 	holdSession(tokenWith({ exp: now() - 30 }));
 
@@ -89,6 +94,7 @@ it('draws the Application for a token inside the leeway', async () => {
 	expect((await screen.findByRole('status')).textContent).toBe(APPLICATION);
 });
 
+// Catches: a token with no expiry or a malformed token being trusted, or its cookies left behind to fail again on every load.
 it.for([
 	['a token with no expiry', tokenWith({}), undefined],
 	['a token that is not a JWT, next to a refresh token', 'dev.dev.dev', 'r1'],
@@ -145,6 +151,7 @@ describe('renewing an expired Session before the first render', () => {
 		);
 	});
 
+	// Catches: a user returning with an expired token being sent to sign in although Platform Auth would have renewed it.
 	it('draws the Application and holds the pair Platform Auth renewed', async () => {
 		holdSession(tokenWith({ exp: now() - 61 }), 'r-good-saas');
 
@@ -158,6 +165,7 @@ describe('renewing an expired Session before the first render', () => {
 		]);
 	});
 
+	// Catches: a Standalone user returning with an expired token being sent to sign in although gt would have renewed it.
 	it('draws the Application and holds the pair gt renewed in Standalone', async () => {
 		vi.stubEnv('APP_MODE', 'standalone');
 		holdSession(tokenWith({ exp: now() - 61 }), 'r-gt');
@@ -171,6 +179,7 @@ describe('renewing an expired Session before the first render', () => {
 		]);
 	});
 
+	// Catches: a refused renewal drawing the Application anyway, or leaving the dead cookies to retry on every load.
 	it.for(['saas', 'standalone'])(
 		'draws the sign-in card and drops the Session when %s renewal is refused',
 		async (mode) => {
@@ -184,6 +193,7 @@ describe('renewing an expired Session before the first render', () => {
 		},
 	);
 
+	// Catches: every page load spending the refresh token on a live Session, rotating it needlessly and risking a family revoke.
 	it('spends no refresh token on a live Session', async () => {
 		holdSession(tokenWith({ exp: now() + 300 }), 'r-good-live');
 

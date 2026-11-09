@@ -16,6 +16,7 @@ function signIn() {
 	return respond(Route, new Request('http://localhost/signin'));
 }
 
+// Catches: SaaS sign-in sending the user somewhere other than the Tenant portal, or the browser caching a redirect to an old portal.
 it('sends a SaaS visitor to the Tenant portal', async () => {
 	vi.stubEnv('APP_MODE', 'saas');
 	vi.stubEnv('TENANT_PORTAL_URL', PORTAL_URL);
@@ -30,6 +31,7 @@ it('sends a SaaS visitor to the Tenant portal', async () => {
 	expect(response.headers.get('cache-control')).toBe('no-store');
 });
 
+// Catches: Standalone sign-in silently reusing the wrong Microsoft account, or the callback being refused because no arrival cookie was set.
 it('sends a Standalone visitor to gt Entra sign-in, forcing the account prompt', async () => {
 	vi.stubEnv('APP_MODE', 'standalone');
 	vi.stubEnv('GT_SERVER_URL', GT_URL);
@@ -48,6 +50,7 @@ it('sends a Standalone visitor to gt Entra sign-in, forcing the account prompt',
 	]);
 });
 
+// Catches: a missing or mistyped APP_MODE sending users to the wrong sign-in instead of failing with the variable to fix.
 it.for([undefined, '', 'SAAS', 'gt'])(
 	'refuses a Mode of %o, naming APP_MODE',
 	async (appMode) => {
@@ -59,6 +62,7 @@ it.for([undefined, '', 'SAAS', 'gt'])(
 	},
 );
 
+// Catches: a missing or scheme-less TENANT_PORTAL_URL redirecting SaaS users to a broken address.
 it.for([undefined, 'portal.example.com'])(
 	'refuses SaaS with a Tenant portal of %o, naming TENANT_PORTAL_URL',
 	async (portalUrl) => {
@@ -70,6 +74,7 @@ it.for([undefined, 'portal.example.com'])(
 	},
 );
 
+// Catches: a missing or scheme-less GT_SERVER_URL redirecting Standalone users to a broken address.
 it.for([undefined, 'gt.example.com'])(
 	'refuses Standalone with a gt of %o, naming GT_SERVER_URL',
 	async (gtUrl) => {
@@ -81,6 +86,7 @@ it.for([undefined, 'gt.example.com'])(
 	},
 );
 
+// Catches: a deployment failing to sign anyone in because it lacks a variable only the other Mode needs.
 it('needs nothing of the other Mode', async () => {
 	vi.stubEnv('APP_MODE', 'saas');
 	vi.stubEnv('TENANT_PORTAL_URL', PORTAL_URL);

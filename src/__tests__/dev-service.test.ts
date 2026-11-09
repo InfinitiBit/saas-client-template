@@ -19,6 +19,7 @@ const notes = (query: string) =>
 		response.json(),
 	);
 
+// Catches: a new Service endpoint answering 404 in local dev until someone hand-writes a handler for it.
 test('answers a path with no hand-written handler from the generated mock', async () => {
 	server.use(...devHandlers([]));
 
@@ -31,6 +32,7 @@ test('answers a path with no hand-written handler from the generated mock', asyn
 	});
 });
 
+// Catches: local dev data changing when the dev server moves port, or two different requests sharing one answer.
 test('seeds a request from its method, path and query, whatever the port', () => {
 	const seed = requestSeed('GET', 'http://localhost:3160/api/notes?page=1');
 
@@ -48,6 +50,7 @@ test('seeds a request from its method, path and query, whatever the port', () =>
 	);
 });
 
+// Catches: local dev data reshuffling on every reload or on a new day, so a developer cannot reproduce what they saw.
 test('answers the same request with the same data, on any day and in any order', async () => {
 	vi.useFakeTimers({ toFake: ['Date'] });
 	onTestFinished(() => {
@@ -64,12 +67,14 @@ test('answers the same request with the same data, on any day and in any order',
 	expect(again).toEqual(first);
 });
 
+// Catches: every page of a list showing the same rows in local dev, hiding pagination bugs.
 test('answers different queries on one path with different data', async () => {
 	server.use(...generatedHandlers());
 
 	expect(await notes('?page=2')).not.toEqual(await notes('?page=1'));
 });
 
+// Catches: an endpoint added to openapi.yaml answering with unseeded, ever-changing data in local dev.
 test('lists a seeded handler for every generated one', () => {
 	const headers = (handlers: { info: { header: string } }[]) =>
 		handlers.map((handler) => handler.info.header).sort();
@@ -79,6 +84,7 @@ test('lists a seeded handler for every generated one', () => {
 	);
 });
 
+// Catches: the empty state of a list never appearing in local dev, so it ships unseen.
 test('answers some page of a generated list with no items', async () => {
 	server.use(...generatedHandlers());
 

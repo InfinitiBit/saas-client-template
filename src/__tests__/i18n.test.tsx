@@ -16,10 +16,12 @@ afterEach(() => {
 	vi.unstubAllEnvs();
 });
 
+// Catches: a German user seeing a raw message key, or English, where a message was added to only one catalogue.
 it('has every message in both English and German', () => {
 	expect(keys(de)).toEqual(keys(en));
 });
 
+// Catches: a user who chose German getting English, or a page whose `lang` still says en so screen readers mispronounce it.
 it('draws German when the saved locale is de', async () => {
 	vi.stubEnv('APP_MODE', 'saas');
 	document.cookie = `${cookieName}=de`;

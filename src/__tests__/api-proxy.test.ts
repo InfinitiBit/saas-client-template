@@ -42,6 +42,7 @@ describe('forwarding to the Service in SaaS', () => {
 		vi.stubEnv('SERVICE_URL', SERVICE_URL);
 	});
 
+	// Catches: the Service rejecting every call because the Session never became a bearer, or a forged x-tenant-id or the refresh cookie leaking upstream.
 	it('turns the Session cookie into a bearer and passes the answer back', async () => {
 		const seen: {
 			url: string;
@@ -90,6 +91,7 @@ describe('forwarding to the Service in SaaS', () => {
 		expect(await response.json()).toEqual({ id: 1 });
 	});
 
+	// Catches: the Service planting cookies in the browser, or a gzip header on an already-inflated body leaving the browser with garbage.
 	it("withholds the Service's cookies and the framing fetch already undid", async () => {
 		server.use(
 			http.get(
@@ -124,6 +126,7 @@ describe('refusing what the browser may not reach', () => {
 	});
 
 	// An undeclared request fails the test, so these also assert nothing left.
+	// Catches: the browser reaching a Service path outside the allowlist, including through an encoded `..`.
 	it.for([
 		'/api/admin',
 		`/api/${TAG}-archive`,
@@ -137,6 +140,7 @@ describe('refusing what the browser may not reach', () => {
 		expect(response.status).toBe(404);
 	});
 
+	// Catches: a Note's own address (`/api/notes/7`) answering 404 because only the bare tag is allowed.
 	it('forwards a path below an allowed tag', async () => {
 		server.use(
 			http.get(`${SERVICE_URL}/api/${TAG}/7`, () => HttpResponse.json({})),
@@ -149,6 +153,7 @@ describe('refusing what the browser may not reach', () => {
 		expect(response.status).toBe(200);
 	});
 
+	// Catches: a signed-out visitor's request reaching the Service, or leaving a stale refresh cookie behind.
 	it('answers a visitor with no Session without asking the Service', async () => {
 		const response = await call(`/api/${TAG}`, {
 			headers: { cookie: `__Host-${APPLICATION_NAME}-refresh=r1` },
@@ -211,6 +216,7 @@ describe('renewing an expired SaaS Session', () => {
 		};
 	}
 
+	// Catches: a user with an expired token seeing an error instead of their data, or being renewed again on the next request because the new pair was never stored.
 	it('renews once at Platform Auth, replays, and holds the new pair', async () => {
 		server.use(serviceAccepting(RENEWED), platformAuthRenewing('r-renew'));
 
@@ -224,6 +230,7 @@ describe('renewing an expired SaaS Session', () => {
 		]);
 	});
 
+	// Catches: a create after token expiry reaching the Service with an empty body on the replay.
 	it('replays the body the first attempt consumed', async () => {
 		const bodies: unknown[] = [];
 
@@ -251,6 +258,7 @@ describe('renewing an expired SaaS Session', () => {
 		expect(bodies).toEqual([{ title: 'Hello' }, { title: 'Hello' }]);
 	});
 
+	// Catches: a user whose refresh token is revoked staying stuck in a half-signed-in state instead of being sent to sign in.
 	it('ends the Session when Platform Auth refuses the refresh token', async () => {
 		server.use(serviceAccepting(RENEWED), platformAuthRenewing('other'));
 
@@ -261,6 +269,7 @@ describe('renewing an expired SaaS Session', () => {
 		expect(response.headers.getSetCookie()).toEqual(ENDED);
 	});
 
+	// Catches: an endless renew loop, or a stuck Session, when even the renewed token is refused.
 	it('ends the Session when the Service refuses the renewed token too', async () => {
 		server.use(serviceAccepting('nobody'), platformAuthRenewing('r-twice'));
 
@@ -270,6 +279,7 @@ describe('renewing an expired SaaS Session', () => {
 		expect(response.headers.getSetCookie()).toEqual(ENDED);
 	});
 
+	// Catches: a Session without a refresh token staying stuck on 401s instead of being ended.
 	it('ends a Session that has no refresh token to renew with', async () => {
 		server.use(serviceAccepting(RENEWED));
 
@@ -281,6 +291,7 @@ describe('renewing an expired SaaS Session', () => {
 		expect(response.headers.getSetCookie()).toEqual(ENDED);
 	});
 
+	// Catches: a page firing parallel requests after expiry spending the refresh token twice, so Platform Auth revokes the family and signs the user out.
 	it('renews once for concurrent requests carrying the same refresh token', async () => {
 		const renewals: string[] = [];
 
@@ -312,6 +323,7 @@ describe('reaching the Service through the Facade in Standalone', () => {
 		vi.stubEnv('SERVICE_URL', SERVICE_URL);
 	});
 
+	// Catches: every Standalone call failing because it hits the Service path instead of the Facade, or gt not seeing the token in its own cookie.
 	it('rewrites the Service path to the Facade and sends the token as gt reads it', async () => {
 		const seen: {
 			url: string;
@@ -346,6 +358,7 @@ describe('reaching the Service through the Facade in Standalone', () => {
 		]);
 	});
 
+	// Catches: a Standalone user with an expired token seeing an error instead of their data, or a renewed refresh token ending in `=` being cut short.
 	it('renews at gt, replays, and holds the new pair', async () => {
 		server.use(
 			http.get(`${FACADE}/api/${TAG}`, ({ request }) =>
@@ -382,6 +395,7 @@ describe('reaching the Service through the Facade in Standalone', () => {
 		]);
 	});
 
+	// Catches: a Standalone user whose gt refresh is refused staying stuck instead of being sent to sign in.
 	it('ends the Session when gt refuses the refresh token', async () => {
 		server.use(
 			http.get(
@@ -406,6 +420,7 @@ describe('reaching the Service through the Facade in Standalone', () => {
 });
 
 describe('serving the Identity', () => {
+	// Catches: the shell showing no email or Workspace because the Service's session was not mapped into an Identity.
 	it("shapes the Service's session into an Identity in SaaS", async () => {
 		vi.stubEnv('APP_MODE', 'saas');
 		vi.stubEnv('SERVICE_URL', SERVICE_URL);
@@ -436,6 +451,7 @@ describe('serving the Identity', () => {
 		});
 	});
 
+	// Catches: the Standalone shell failing to load its Identity because it asked the absent Service, or invented a Workspace.
 	it('asks gt in Standalone, where there is no Workspace', async () => {
 		vi.stubEnv('APP_MODE', 'standalone');
 		vi.stubEnv('GT_SERVER_URL', GT_URL);
@@ -464,6 +480,7 @@ describe('serving the Identity', () => {
 		});
 	});
 
+	// Catches: the shell crashing on a malformed Identity instead of getting a clear upstream error.
 	it("answers 502 when the upstream's answer is not an Identity", async () => {
 		vi.stubEnv('APP_MODE', 'saas');
 		vi.stubEnv('SERVICE_URL', SERVICE_URL);
@@ -480,6 +497,7 @@ describe('serving the Identity', () => {
 		expect(response.status).toBe(502);
 	});
 
+	// Catches: a user of a deleted tenant seeing a generic error instead of the Session gate that explains it.
 	it('passes a refusal through for the Session gate to read', async () => {
 		vi.stubEnv('APP_MODE', 'saas');
 		vi.stubEnv('SERVICE_URL', SERVICE_URL);
@@ -498,6 +516,7 @@ describe('serving the Identity', () => {
 	});
 });
 
+// Catches: a fresh SaaS checkout with no SERVICE_URL crashing or ending the Session instead of saying it is not implemented.
 it('answers 501 while SaaS has no Service to reach', async () => {
 	vi.stubEnv('APP_MODE', 'saas');
 	vi.stubEnv('SERVICE_URL', undefined);
@@ -508,6 +527,7 @@ it('answers 501 while SaaS has no Service to reach', async () => {
 	expect(response.headers.getSetCookie()).toEqual([]);
 });
 
+// Catches: a mistyped SERVICE_URL failing with an opaque fetch error instead of naming the variable to fix.
 it('refuses a Service address that is not a URL, naming SERVICE_URL', async () => {
 	vi.stubEnv('APP_MODE', 'saas');
 	vi.stubEnv('SERVICE_URL', 'service.example.com');
