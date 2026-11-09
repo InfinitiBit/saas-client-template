@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Regenerates the client from the committed openapi.yaml and fails if it differs from the committed client.
 set -euo pipefail
 
 generated=src/features/api/generated

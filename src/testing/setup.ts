@@ -33,7 +33,6 @@ if (typeof window !== 'undefined') {
 	window.scrollTo = () => undefined;
 }
 
-// The pre-push gate runs the suite on a busy dev machine, where a page can take seconds to draw; 1 s flakes.
 configure({ asyncUtilTimeout: 5000 });
 
 beforeAll(() => {

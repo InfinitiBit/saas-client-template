@@ -39,7 +39,6 @@ export const noJsxAnd = defineRule({
 	},
 });
 
-// Every feature not listed is an Application feature. Shared settings, so the rules that tell the two apart read one list.
 const localSettings = z.object({
 	local: z.object({ templateFeatures: z.array(z.string()) }),
 });
@@ -66,7 +65,6 @@ function featureLayoutHolds(
 	return below.length > 1 && featureFolders.has(below[0]);
 }
 
-// `file` is relative to the repo root, with `/` separators.
 export function layoutViolation(
 	file: string,
 	templateFeatures: readonly string[],
@@ -125,7 +123,6 @@ function resolveSpecifier(file: string, specifier: string) {
 	return null;
 }
 
-// `file` is relative to the repo root, with `/` separators.
 export function importViolation(
 	file: string,
 	specifier: string,
@@ -162,7 +159,6 @@ export function importViolation(
 	return throughBarrel ? null : { messageId: 'pastBarrel', data: { from, to } };
 }
 
-// One statement of an Application feature's `index.ts`.
 export function barrelViolation(type: string, source: string | null) {
 	if (type === 'ExportAllDeclaration') return 'exportAll';
 
@@ -233,7 +229,6 @@ export const featureBoundaries = defineRule({
 	},
 });
 
-// The callee's chain, unwrapped through `.each(table)` and `` .each`table` ``, starts at `it` or `test`.
 function namesTest(callee: ESTree.Node): boolean {
 	if (callee.type === 'Identifier')
 		return callee.name === 'it' || callee.name === 'test';
@@ -247,7 +242,6 @@ function namesTest(callee: ESTree.Node): boolean {
 	return false;
 }
 
-// `it.each(table)` is only the callee of the test call, so it is not a test itself.
 export function isTestCall(node: ESTree.CallExpression) {
 	return (
 		namesTest(node.callee) &&

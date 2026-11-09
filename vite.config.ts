@@ -43,9 +43,7 @@ export default defineConfig(({ mode: viteMode }) => {
 			setupFiles: ['./src/testing/setup.ts'],
 			exclude: [...defaultExclude, '.claude/**'],
 			sequence: { shuffle: true },
-			// Above `asyncUtilTimeout` in `src/testing/setup.ts`, so a slow find fails with its own message.
 			testTimeout: 15_000,
-			// Low enough that every run lists its slowest tests, which the pre-push budget message points to.
 			slowTestThreshold: 100,
 			// Agents otherwise get Vitest's minimal reporter, which hides the slow tests the pre-push budget points to.
 			reporters: ['default'],

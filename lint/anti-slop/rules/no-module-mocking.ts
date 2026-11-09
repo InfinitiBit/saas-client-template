@@ -47,7 +47,6 @@ function frameworkMethod(sourceCode: SourceCode, callee: ESTree.Expression): str
   return property.type === "Identifier" ? property.name : null;
 }
 
-/** Whether the object at the root of `expression`'s member chain is imported from this app, through `@/` or a relative path. */
 function isAppImport(sourceCode: SourceCode, expression: ESTree.Argument): boolean {
   let root: ESTree.Argument | ESTree.Super = expression;
   while (root.type === "MemberExpression") root = root.object;
@@ -63,12 +62,11 @@ function isAppImport(sourceCode: SourceCode, expression: ESTree.Argument): boole
   });
 }
 
-// App code may write to its own module state; only a test doing it fakes the app.
 function isTestFile(filename: string): boolean {
   return /\.test\.|(^|[\\/])__tests__[\\/]/.test(filename);
 }
 
-/** Ban test framework module mocking, and spying on or assigning onto app imports, in favor of real dependency seams. */
+/** Ban test framework module mocking in favor of real dependency seams. */
 export const noModuleMockingRule = defineRule({
   meta: {
     type: "problem",

@@ -61,7 +61,7 @@ export function devHandlers(handWritten: RequestHandler[]) {
 }
 
 export async function startDevService(handWritten: () => RequestHandler[]) {
-	// Relative dates count back from now, which moves between runs; `handWritten` draws its sample data after this.
+	// Relative dates count back from now, which moves between runs.
 	faker.setDefaultRefDate('2026-01-01T00:00:00Z');
 
 	await setupWorker(...devHandlers(handWritten())).start({

@@ -55,7 +55,6 @@ export function pagedNotes(notes: Note[]) {
 	});
 }
 
-/** Notes' handlers for `pnpm dev:mock`, over one shared set of sample Notes. */
 export function notesDevHandlers() {
 	const notes = sampleNotes();
 

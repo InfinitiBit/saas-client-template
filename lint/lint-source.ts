@@ -33,9 +33,6 @@ const oxlintrcSchema = z.object({
 	settings: z.record(z.string(), z.unknown()),
 });
 
-// Runs oxlint over the repo with only `rules` on, each set as `.oxlintrc.json` sets it, with its plugins and settings.
-// It leaves out the type-aware pass, `overrides` and `--deny-warnings`, so it proves the rules load and pass, not all of `pnpm lint`.
-// The config is written outside the repo, so its plugin paths are absolute and its ignores move to the CLI, which resolves them from the root.
 export function lintSource(rules: readonly string[]) {
 	const config = oxlintrcSchema.parse(
 		JSON.parse(readFileSync(join(root, '.oxlintrc.json'), 'utf8')),
