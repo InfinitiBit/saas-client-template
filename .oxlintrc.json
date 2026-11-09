@@ -295,6 +295,10 @@
 		"typescript/prefer-regexp-exec": "error",
 		"typescript/prefer-string-starts-ends-with": "error",
 		"local/no-jsx-and": "error",
+		"local/layout": [
+			"error",
+			{ "templateFeatures": ["api", "auth", "brand", "shell"] }
+		],
 		"local/require-catches-comment": "error",
 		"@tanstack/router/create-route-property-order": "error",
 		"@tanstack/router/route-param-names": "error",

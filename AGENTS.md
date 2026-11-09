@@ -15,11 +15,11 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 
 ## Layout
 
-- Code a feature owns lives under `src/features/<feature>/`, split into `components/`, `hooks/` and `lib/` as the feature needs them. Split a large feature into `src/features/<feature>/<subfeature>/` only when it grows enough to need it.
+- Code a feature owns lives under `src/features/<feature>/`, split into `components/`, `hooks/` and `lib/` as the feature needs them. Split a large feature into `src/features/<feature>/<subfeature>/` only when it grows enough to need it. A feature's direct children are only those folders, `generated/` in `api`, subfeature folders (each split the same way) and, in a feature other than the template features `api`, `auth`, `brand` and `shell`, `index.ts`. `local/layout` enforces this; its `templateFeatures` option in `.oxlintrc.json` lists the template features.
 - Route files stay in `src/routes/` and stay thin: they import behaviour from a feature instead of owning it.
 - Put a component in the narrowest folder that owns it. It moves to `src/components/` only when a second feature really needs it.
 - A barrel file only for a component with its own subcomponents, exporting only what other files call.
-- Server-only modules keep the `.server.ts` suffix and live inside the feature they belong to. There is no `src/server/` folder.
+- Server-only modules keep the `.server.ts` suffix and live inside the feature they belong to, or at the `src/` root when app-wide. There is no `src/server/` folder. `local/layout` enforces both.
 - Only app-wide entry points and configuration stay at the `src/` root.
 
 ## UI
@@ -36,12 +36,18 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 
 - Screens call the orval-generated hooks directly; a feature hook only when shared or composite. Invalidate inline by the generated key prefix. Errors are handled centrally. Tests mock the Service at HTTP with MSW, never the hooks. See `docs/agents/data-fetching.md`.
 - Regenerate with `pnpm api:generate`; never edit `src/features/api/generated/`. `pnpm check` regenerates from the committed `openapi.yaml` and fails on any difference.
+- A feature's hand-written mock lives in its `lib/<feature>-mock.ts`; it serves `pnpm dev:mock` through the router and stands in for the Service in that feature's Screen tests.
 
 ## Checks
 
 `pnpm lint` (oxlint, type-aware), `pnpm format` (oxfmt), `pnpm type:check`, `pnpm test`, `pnpm build`. Commits are Conventional Commits (`pnpm commit` prompts); branches are `type/slug` or `type/scope/slug`. oxlint and oxfmt replace ESLint and Prettier (ADR 0001).
 
 Pre-commit scans the staged changes for secrets with gitleaks (`.gitleaks.toml`, the default rules) before lint-staged, and fails when gitleaks is not installed (`brew install gitleaks`). An allowlist entry is for a proven false positive and carries a one-line reason.
+
+- The git hooks are the gate. Pre-push checks the branch name, then runs `pnpm check` and `pnpm test`, and fails a run over its 3-minute budget. When it does, speed up the slowest tests that the run lists.
+- `pnpm install` installs the git hooks, and a Claude Code session runs it at startup (`.claude/settings.json`). `pnpm test` refuses to run while husky's pre-push hook is missing; run `pnpm install` and fix what it reports.
+- Never pass `--no-verify`. It skips the gate without a trace.
+- A fast or watch test loop (`vitest`, a filtered run) is for the inner loop. It is never the gate.
 
 Tests drive the client through one of two seams, with every upstream stubbed by MSW (`src/testing/msw.ts`); an undeclared request fails the test:
 
