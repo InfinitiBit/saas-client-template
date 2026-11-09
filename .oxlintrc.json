@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"plugins": ["react", "typescript", "jsx-a11y", "unicorn"],
+	"plugins": ["react", "typescript", "jsx-a11y", "unicorn", "import"],
 	"categories": {
 		"correctness": "off"
 	},
@@ -295,10 +295,8 @@
 		"typescript/prefer-regexp-exec": "error",
 		"typescript/prefer-string-starts-ends-with": "error",
 		"local/no-jsx-and": "error",
-		"local/layout": [
-			"error",
-			{ "templateFeatures": ["api", "auth", "brand", "shell"] }
-		],
+		"local/layout": "error",
+		"local/feature-boundaries": "error",
 		"@tanstack/router/create-route-property-order": "error",
 		"@tanstack/router/route-param-names": "error",
 		"oxc/no-accumulating-spread": "error",
@@ -444,7 +442,7 @@
 					}
 				],
 				"import/no-default-export": "error",
-				"import/no-cycle": "off",
+				"import/no-cycle": "error",
 				"typescript/await-thenable": "warn",
 				"typescript/only-throw-error": [
 					"warn",
@@ -592,6 +590,9 @@
 		}
 	],
 	"settings": {
+		"local": {
+			"templateFeatures": ["api", "auth", "brand", "shell"]
+		},
 		"shadcn": {
 			"componentImports": ["^@infinitibit_gmbh/ui(/|$)"],
 			"note": "See AGENTS.md → UI."

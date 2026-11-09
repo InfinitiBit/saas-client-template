@@ -1,6 +1,11 @@
-import { join, relative, sep } from 'node:path';
+import { join, posix, relative, sep } from 'node:path';
 
-import { defineRule, definePlugin, type ESTree } from '@oxlint/plugins';
+import {
+	defineRule,
+	definePlugin,
+	type ESTree,
+	type Settings,
+} from '@oxlint/plugins';
 import { z } from 'zod';
 
 export function isJsxAnd(node: ESTree.LogicalExpression) {
@@ -32,15 +37,13 @@ export const noJsxAnd = defineRule({
 	},
 });
 
-// Every feature not listed is an Application feature. Rules that tell the two apart share this option.
-const templateFeaturesOption = z.object({
-	templateFeatures: z.array(z.string()),
+// Every feature not listed is an Application feature. Shared settings, so the rules that tell the two apart read one list.
+const localSettings = z.object({
+	local: z.object({ templateFeatures: z.array(z.string()) }),
 });
 
-export const templateFeaturesSchema = [z.toJSONSchema(templateFeaturesOption)];
-
-export function templateFeatures(options: readonly unknown[]) {
-	return templateFeaturesOption.parse(options[0]).templateFeatures;
+function templateFeatures(settings: Readonly<Settings>) {
+	return localSettings.parse(settings).local.templateFeatures;
 }
 
 const root = join(import.meta.dirname, '..');
@@ -99,11 +102,10 @@ export const layout = defineRule({
 			featureFolder:
 				'{{file}}: a feature holds only `components/`, `hooks/`, `lib/`, `generated/` (`api` only), subfeature folders of `components/`, `hooks/` and `lib/`, and, in an Application feature, `index.ts` (AGENTS.md → Layout).',
 		},
-		schema: templateFeaturesSchema,
 	},
 	create(context) {
 		const file = relative(root, context.filename).split(sep).join('/');
-		const messageId = layoutViolation(file, templateFeatures(context.options));
+		const messageId = layoutViolation(file, templateFeatures(context.settings));
 
 		return {
 			Program(node) {
@@ -114,7 +116,128 @@ export const layout = defineRule({
 	},
 });
 
+function resolveSpecifier(file: string, specifier: string) {
+	if (specifier.startsWith('@/')) return `src/${specifier.slice(2)}`;
+
+	if (specifier.startsWith('.'))
+		return posix.join(posix.dirname(file), specifier);
+
+	return null;
+}
+
+// `file` is relative to the repo root, with `/` separators.
+export function importViolation(
+	file: string,
+	specifier: string,
+	templateFeatures: readonly string[],
+) {
+	const target = resolveSpecifier(file, specifier);
+	const [top, area, from] = file.split('/');
+
+	if (
+		target === null ||
+		!target.startsWith('src/features/') ||
+		top !== 'src' ||
+		file.includes('.test.')
+	)
+		return null;
+
+	const [, , to, ...rest] = target.split('/');
+
+	if (area === 'components' || area === 'lib')
+		return {
+			messageId: 'sharedImportsFeature',
+			data: { from: `src/${area}`, to },
+		};
+
+	if (area !== 'features' || from === to || templateFeatures.includes(to))
+		return null;
+
+	if (templateFeatures.includes(from))
+		return { messageId: 'templateImportsApplication', data: { from, to } };
+
+	const throughBarrel =
+		rest.length === 0 || (rest.length === 1 && /^index(\.ts)?$/.test(rest[0]));
+
+	return throughBarrel ? null : { messageId: 'pastBarrel', data: { from, to } };
+}
+
+// One statement of an Application feature's `index.ts`.
+export function barrelViolation(type: string, source: string | null) {
+	if (type === 'ExportAllDeclaration') return 'exportAll';
+
+	if (type !== 'ExportNamedDeclaration' || source === null)
+		return 'notReExport';
+
+	return /\.server(\.[cm]?[jt]sx?)?$/.test(source) ? 'serverReExport' : null;
+}
+
+export const featureBoundaries = defineRule({
+	meta: {
+		type: 'problem',
+		docs: {
+			description:
+				'Which feature may import which: AGENTS.md → Layout, ADR 0011.',
+		},
+		messages: {
+			templateImportsApplication:
+				'Template feature `{{from}}` imports Application feature `{{to}}`. A derived repo deletes `{{to}}`; pass it in from a route or `router.tsx` instead (AGENTS.md → Layout).',
+			pastBarrel:
+				'Application feature `{{from}}` imports Application feature `{{to}}` past its `index.ts`. Import from `@/features/{{to}}`, and re-export what you need there (AGENTS.md → Layout).',
+			sharedImportsFeature:
+				'`{{from}}` imports feature `{{to}}`. Shared folders import no feature (AGENTS.md → Layout).',
+			exportAll:
+				'{{file}}: a barrel names what it re-exports; no `export *` (AGENTS.md → Layout).',
+			notReExport:
+				'{{file}}: a barrel holds only named re-exports, `export { x } from …` (AGENTS.md → Layout).',
+			serverReExport:
+				'{{file}}: a barrel never re-exports a `.server.ts` module; it would reach the client (AGENTS.md → Layout).',
+		},
+	},
+	create(context) {
+		const file = relative(root, context.filename).split(sep).join('/');
+		const features = templateFeatures(context.settings);
+
+		const check = (source: ESTree.Expression) => {
+			if (source.type !== 'Literal') return;
+
+			const violation = importViolation(file, String(source.value), features);
+
+			if (violation !== null) context.report({ node: source, ...violation });
+		};
+
+		return {
+			ImportDeclaration: (node) => check(node.source),
+			ExportNamedDeclaration(node) {
+				if (node.source !== null) check(node.source);
+			},
+			ExportAllDeclaration: (node) => check(node.source),
+			ImportExpression: (node) => check(node.source),
+			TSImportType: (node) => check(node.source),
+			Program(node) {
+				if (!/^src\/features\/[^/]+\/index\.ts$/.test(file)) return;
+
+				for (const statement of node.body) {
+					const source =
+						statement.type === 'ExportNamedDeclaration'
+							? (statement.source?.value ?? null)
+							: null;
+
+					const messageId = barrelViolation(statement.type, source);
+
+					if (messageId !== null)
+						context.report({ node: statement, messageId, data: { file } });
+				}
+			},
+		};
+	},
+});
+
 export default definePlugin({
 	meta: { name: 'local' },
-	rules: { 'no-jsx-and': noJsxAnd, layout },
+	rules: {
+		'no-jsx-and': noJsxAnd,
+		layout,
+		'feature-boundaries': featureBoundaries,
+	},
 });

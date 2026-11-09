@@ -1,0 +1,107 @@
+import { lintSource } from './lint-source';
+import { barrelViolation, importViolation } from './plugin';
+
+const templateFeatures = ['api', 'auth', 'brand'];
+
+const refused = (messageId: string, from: string, to: string) => ({
+	messageId,
+	data: { from, to },
+});
+
+const imports = [
+	['src/features/orders/lib/a.ts', '@/features/auth/lib/b', null],
+	['src/features/orders/lib/a.ts', '@/features/api/generated/c', null],
+	['src/features/orders/lib/a.ts', '../../auth/hooks/d', null],
+	['src/features/auth/lib/a.ts', '@/features/brand/lib/b', null],
+	['src/features/orders/lib/a.ts', './b', null],
+	['src/features/orders/billing/lib/a.ts', '@/features/orders/lib/b', null],
+	['src/features/orders/lib/a.ts', '@/application', null],
+	['src/features/orders/lib/a.ts', '@/components/data-table', null],
+	['src/features/orders/lib/a.ts', 'react', null],
+	['src/features/orders/lib/a.ts', '@/features/invoices', null],
+	['src/features/orders/lib/a.ts', '@/features/invoices/index', null],
+	['src/features/orders/lib/a.ts', '../../invoices/index.ts', null],
+	[
+		'src/features/auth/lib/a.ts',
+		'@/features/orders/lib/b',
+		refused('templateImportsApplication', 'auth', 'orders'),
+	],
+	[
+		'src/features/api/lib/a.ts',
+		'@/features/orders',
+		refused('templateImportsApplication', 'api', 'orders'),
+	],
+	[
+		'src/features/api/lib/a.ts',
+		'../../orders/lib/b',
+		refused('templateImportsApplication', 'api', 'orders'),
+	],
+	[
+		'src/features/orders/lib/a.ts',
+		'@/features/invoices/lib/b',
+		refused('pastBarrel', 'orders', 'invoices'),
+	],
+	[
+		'src/features/orders/billing/lib/a.ts',
+		'../../../invoices/components/c',
+		refused('pastBarrel', 'orders', 'invoices'),
+	],
+	[
+		'src/features/orders/lib/a.ts',
+		'@/features/invoices/index.server',
+		refused('pastBarrel', 'orders', 'invoices'),
+	],
+	[
+		'src/components/table.tsx',
+		'@/features/auth/hooks/b',
+		refused('sharedImportsFeature', 'src/components', 'auth'),
+	],
+	[
+		'src/lib/format.ts',
+		'../features/orders',
+		refused('sharedImportsFeature', 'src/lib', 'orders'),
+	],
+	['src/components/table.tsx', '@/lib/format', null],
+	['src/routes/orders.tsx', '@/features/orders/lib/b', null],
+	['src/router.tsx', '@/features/orders/lib/b', null],
+	['src/server.ts', '@/features/orders/lib/b', null],
+	['src/testing/render.tsx', '@/features/orders/lib/b', null],
+	['src/__tests__/orders.test.tsx', '@/features/orders/lib/b', null],
+	['src/features/auth/lib/a.test.ts', '@/features/orders/lib/b', null],
+	['src/components/table.test.tsx', '@/features/orders/lib/b', null],
+] as const;
+
+// Catches: a template feature reaching into an Application feature (so a derived repo breaks when it deletes that feature), one Application feature reaching past another's `index.ts`, or a shared folder quietly becoming a feature, and lint missing it because the path is relative; or lint refusing an import the boundaries allow.
+it.each(imports)('%s imports %s', (file, specifier, expected) => {
+	expect(importViolation(file, specifier, templateFeatures)).toEqual(expected);
+});
+
+const barrelStatements = [
+	['ExportNamedDeclaration', './lib/orders', null],
+	['ExportNamedDeclaration', './components/orders-list', null],
+	['ExportAllDeclaration', './lib/orders', 'exportAll'],
+	['ExportNamedDeclaration', null, 'notReExport'],
+	['ImportDeclaration', './lib/orders', 'notReExport'],
+	['VariableDeclaration', null, 'notReExport'],
+	['ExportDefaultDeclaration', null, 'notReExport'],
+	['ExportNamedDeclaration', './lib/orders.server', 'serverReExport'],
+	['ExportNamedDeclaration', './lib/orders.server.ts', 'serverReExport'],
+	[
+		'ExportNamedDeclaration',
+		'@/features/orders/lib/orders.server',
+		'serverReExport',
+	],
+	['ExportNamedDeclaration', './lib/server-time', null],
+] as const;
+
+// Catches: an Application feature's `index.ts` growing an `export *`, its own code or a `.server.ts` re-export, so its public surface stops being a deliberate list and server code can reach the client through it.
+it.each(barrelStatements)('%s from %s', (type, source, expected) => {
+	expect(barrelViolation(type, source)).toBe(expected);
+});
+
+// Catches: `pnpm lint` silently skipping the rule or losing the template-feature setting, or app code that already crosses a boundary.
+it('local/feature-boundaries passes over the real source', () => {
+	const { status, stdout, stderr } = lintSource('local/feature-boundaries');
+
+	expect(status, stdout + stderr).toBe(0);
+});
