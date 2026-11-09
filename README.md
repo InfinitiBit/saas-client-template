@@ -84,7 +84,7 @@ orval reads [`openapi.yaml`](openapi.yaml), or the file or URL in `API_SPEC`, an
 
 - **SaaS.** The Tenant portal Launches the user onto `/<tenant-slug>#token=…&refresh_token=…`. Platform Auth renews and revokes the Session.
 - **Standalone.** The sign-in card sends the user to gt, which returns them to `/auth/callback` with the same fragment. gt renews the Session.
-- **Session.** The browser posts the fragment to `/session`, and the server stores it in `__Host-` HttpOnly cookies. The server decides between the Session gate and the Application before it renders anything.
+- **Session.** The browser posts the fragment to `/session`, and the server stores it in `__Host-` HttpOnly cookies. The server decides between the Session gate and the Application before it renders anything, renewing an expired Session first. [ADR 0010](docs/adr/0010-the-launch-format.md) records the Launch format.
 
 ### Routing
 
@@ -123,7 +123,7 @@ orval reads [`openapi.yaml`](openapi.yaml), or the file or URL in `API_SPEC`, an
     | `PORT`              | both       | The port the dev and built servers listen on.                                                                       |
     | `HOST_PORT`         | both       | The host port compose publishes the container on.                                                                   |
     | `TENANT_PORTAL_URL` | SaaS       | Where the client sends a visitor with no Session to be Launched.                                                    |
-    | `PLATFORM_AUTH_URL` | SaaS       | Where the proxy renews a Session and where sign-out revokes it.                                                     |
+    | `PLATFORM_AUTH_URL` | SaaS       | Where the server renews a Session and where sign-out revokes it.                                                    |
     | `SERVICE_URL`       | SaaS       | The Service that `/api` forwards to. If it is unset, `/api` answers `501`.                                          |
     | `GT_SERVER_URL`     | Standalone | The gt server. gt must list this Application in its `SSO_APP_RETURN_URIS`, or sign-in fails with `SSO_APP_UNKNOWN`. |
 
@@ -145,7 +145,7 @@ To run with no Service at all:
 pnpm dev:mock                 # or PORT=<port> pnpm dev:mock
 ```
 
-MSW answers the Identity and the Service's paths in the browser. If the port is taken, Vite moves to the next free one and prints the `Launch:` URL for the port it bound, `http://localhost:<PORT>/dev#token=dev.dev.dev`. Open it to land signed in. [`docs/design/README.md`](docs/design/README.md#mock-mode) has the details.
+MSW answers the Identity and the Service's paths in the browser. If the port is taken, Vite moves to the next free one and prints the `Launch:` URL for the port it bound, `http://localhost:<PORT>/dev#token=<dev token>`. Open it to land signed in. [`docs/design/README.md`](docs/design/README.md#mock-mode) has the details.
 
 ### Running with Docker
 

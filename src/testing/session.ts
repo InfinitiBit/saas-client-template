@@ -9,7 +9,10 @@ export function tokenWith(claims: { exp?: number }) {
 }
 
 /** Puts a Session in the browser's cookie jar, where adopting a Launch leaves it. */
-export function holdSession(access = tokenWith({}), refresh?: string) {
+export function holdSession(
+	access = tokenWith({ exp: Date.now() / 1000 + 3600 }),
+	refresh?: string,
+) {
 	document.cookie = `${SESSION_COOKIE}=${access}; Path=/; Secure`;
 
 	if (refresh !== undefined)

@@ -61,14 +61,16 @@ _Avoid_: theme, skin, white-label
 
 **Launch**:
 A user's arrival carrying credentials in the URL fragment — from the Tenant
-portal in SaaS, from gt's sign-in callback in Standalone. One shape in both
-Modes.
+portal in SaaS onto `/<tenant-slug>`, from gt's sign-in callback in Standalone
+onto `/auth/callback`. One shape in both Modes: `token`, an optional
+`refresh_token`, and a `tenant` that is ignored (ADR 0010).
 _Avoid_: SSO redirect, handoff, adoption, callback
 
 **Session**:
 The user's own credential as this client holds it — never in a script's reach.
-An access token and, where the **Launch** carried one, the refresh token that
-renews the pair when an upstream refuses.
+An access token, a JWT with a readable `exp`, and, where the **Launch** carried
+one, the refresh token that renews the pair once the access token expires or
+an upstream refuses it.
 _Avoid_: auth token, login
 
 **Identity**:

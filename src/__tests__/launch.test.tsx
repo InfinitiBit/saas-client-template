@@ -1,6 +1,8 @@
+import { getRequest } from '@tanstack/react-start/server';
 import { screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
+import { pagedNotes } from '@/features/notes/lib/notes-mock';
 import { server } from '@/testing/msw';
 import { renderRouter } from '@/testing/render-router';
 import { holdSession } from '@/testing/session';
@@ -53,6 +55,13 @@ it.for([
 	},
 );
 
+it('checks the Session once after a Launch onto a tenant slug', async () => {
+	await launchAt(`/acme#token=${TOKEN}`);
+
+	expect(await screen.findByRole('link', { name: 'Notes' })).toBeTruthy();
+	expect(getRequest).toHaveBeenCalledTimes(1);
+});
+
 it('adopts a Launch without a refresh token', async () => {
 	await launchAt(`/acme#token=${TOKEN}`);
 
@@ -70,4 +79,53 @@ it('adopts nothing when the address carries no Launch', async () => {
 	await launchAt('/');
 
 	expect(adopted).toEqual([]);
+});
+
+// The server draws the layout before the browser adopts the Launch: a fragment
+// never reaches it, so its Session check comes without the cookie.
+function checkSessionAsTheServerDid() {
+	vi.mocked(getRequest).mockImplementationOnce(
+		() => new Request(location.href),
+	);
+}
+
+it.for(['/', '/notes'])(
+	'lands a Launch adopted at %s inside the Application',
+	async (arrival) => {
+		server.use(pagedNotes([]));
+		checkSessionAsTheServerDid();
+
+		await launchAt(`${arrival}#token=${TOKEN}`);
+
+		expect(await screen.findByRole('link', { name: 'Notes' })).toBeTruthy();
+		expect(screen.queryByText('Sign in to continue')).toBeNull();
+	},
+);
+
+it('keeps a refused Launch on the sign-in card, checking the Session once', async () => {
+	server.use(
+		http.post(`${location.origin}/session`, async ({ request }) => {
+			adopted.push({ body: await request.json(), addressBar: location.href });
+
+			return new HttpResponse(null, { status: 400 });
+		}),
+	);
+	checkSessionAsTheServerDid();
+
+	await launchAt(`/#token=${TOKEN}`);
+
+	expect((await screen.findByRole('heading', { level: 1 })).textContent).toBe(
+		'Sign in to continue',
+	);
+	expect(adopted).toHaveLength(1);
+	expect(getRequest).toHaveBeenCalledTimes(1);
+});
+
+it('checks the Session once on a document with no Launch', async () => {
+	holdSession();
+
+	await launchAt('/');
+
+	expect(await screen.findByRole('link', { name: 'Notes' })).toBeTruthy();
+	expect(getRequest).toHaveBeenCalledTimes(1);
 });

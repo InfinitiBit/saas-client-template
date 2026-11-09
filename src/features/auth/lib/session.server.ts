@@ -84,29 +84,40 @@ export function readSession(request: Request) {
 // every call. The leeway errs towards the Application over a skewed clock.
 const LEEWAY_SECONDS = 60;
 
-const claimsSchema = z.object({ exp: z.number().optional() });
+const claimsSchema = z.object({ exp: z.number() });
 
-export function hasLiveSession(request: Request) {
+// Start's response headers type `append` too narrowly to be a `Headers`.
+type CookieSink = Pick<Headers, 'append'>;
+
+export async function settleSession(request: Request, response: CookieSink) {
 	const { access, refresh } = readSession(request);
 
 	if (access === null) return false;
 
-	// The proxy renews an expired token on the first refusal.
-	if (refresh !== null) return true;
-
 	const expiry = expiryOf(access);
 
-	return expiry === null || expiry + LEEWAY_SECONDS > Date.now() / 1000;
+	if (expiry !== null && expiry + LEEWAY_SECONDS > Date.now() / 1000)
+		return true;
+
+	const renewed =
+		expiry !== null && refresh !== null ? await renewSession(refresh) : null;
+
+	if (renewed === null) {
+		dropSession(response);
+
+		return false;
+	}
+
+	holdSession(response, renewed);
+
+	return true;
 }
 
-// Null when unreadable, which leaves the call to upstream.
 function expiryOf(token: string) {
 	try {
-		const { exp } = claimsSchema.parse(
+		return claimsSchema.parse(
 			JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()),
-		);
-
-		return exp ?? null;
+		).exp;
 	} catch {
 		return null;
 	}
@@ -124,7 +135,7 @@ export async function endSession(request: Request) {
 	});
 }
 
-export function dropSession(headers: Headers) {
+export function dropSession<T extends CookieSink>(headers: T) {
 	headers.append('set-cookie', expired(SESSION_COOKIE));
 	headers.append('set-cookie', expired(REFRESH_COOKIE));
 
@@ -151,7 +162,7 @@ const gtPairSchema = z
 		refresh: sso_refresh_token,
 	}));
 
-export function holdSession(headers: Headers, pair: Pair) {
+export function holdSession(headers: CookieSink, pair: Pair) {
 	headers.append('set-cookie', held(SESSION_COOKIE, pair.access));
 	headers.append('set-cookie', held(REFRESH_COOKIE, pair.refresh));
 }

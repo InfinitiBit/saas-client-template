@@ -45,6 +45,22 @@ export default defineConfig(({ mode: viteMode }) => {
 	};
 });
 
+const DEV_TOKEN = [
+	{ alg: 'none', typ: 'JWT' },
+	{
+		sub: 'usr_00000000-0000-4000-8000-000000000001',
+		aud: 'dev',
+		tenant_slug: 'dev',
+		session_id: '00000000-0000-4000-8000-000000000002',
+		iat: 1_767_225_600,
+		exp: 4_102_444_800,
+		jti: '00000000-0000-4000-8000-000000000003',
+	},
+]
+	.map((part) => Buffer.from(JSON.stringify(part)).toString('base64url'))
+	.concat('unsigned')
+	.join('.');
+
 function printLaunchUrl(): Plugin {
 	return {
 		name: 'print-launch-url',
@@ -56,7 +72,7 @@ function printLaunchUrl(): Plugin {
 
 				for (const url of server.resolvedUrls?.local ?? [])
 					server.config.logger.info(
-						`  ➜  Launch:  ${new URL('/dev#token=dev.dev.dev', url)}`,
+						`  ➜  Launch:  ${new URL(`/dev#token=${DEV_TOKEN}`, url)}`,
 					);
 			};
 		},
