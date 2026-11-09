@@ -31,7 +31,13 @@ export function lintSource(rule: string) {
 		file,
 		JSON.stringify({
 			categories: { correctness: 'off' },
-			jsPlugins: [join(root, 'lint/plugin.ts')],
+			jsPlugins: [
+				join(root, 'lint/plugin.ts'),
+				{
+					name: 'anti-slop',
+					specifier: join(root, 'lint/anti-slop/index.ts'),
+				},
+			],
 			rules: { [rule]: setting },
 		}),
 	);
