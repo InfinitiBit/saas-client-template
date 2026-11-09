@@ -44,6 +44,7 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 Pre-commit scans the staged changes for secrets with gitleaks (`.gitleaks.toml`, the default rules) before lint-staged, and fails when gitleaks is not installed (`brew install gitleaks`). An allowlist entry is for a proven false positive and carries a one-line reason.
 
 - The git hooks are the gate. Pre-push checks the branch name, then runs `pnpm check` and `pnpm test`, and fails a run over its 3-minute budget. When it does, speed up the slowest tests that the run lists.
+- `pnpm install` installs the git hooks, and a Claude Code session runs it at startup (`.claude/settings.json`). `pnpm test` refuses to run while husky's pre-push hook is missing; run `pnpm install` and fix what it reports.
 - Never pass `--no-verify`. It skips the gate without a trace.
 - A fast or watch test loop (`vitest`, a filtered run) is for the inner loop. It is never the gate.
 

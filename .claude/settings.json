@@ -1,0 +1,16 @@
+{
+	"hooks": {
+		"SessionStart": [
+			{
+				"matcher": "startup",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "pnpm install > /dev/null 2>&1 || echo '{\"systemMessage\": \"pnpm install failed, so git may run no hooks: run pnpm install and fix what it reports.\", \"hookSpecificOutput\": {\"hookEventName\": \"SessionStart\", \"additionalContext\": \"pnpm install failed at session start, so git may run no hooks and pnpm test refuses to run. Run pnpm install and fix what it reports before your first commit.\"}}'",
+						"timeout": 300
+					}
+				]
+			}
+		]
+	}
+}
