@@ -90,12 +90,12 @@ it('draws the Application for a token inside the leeway', async () => {
 });
 
 it.for([
-	['a token with no expiry', tokenWith({})],
-	['a token that is not a JWT', 'dev.dev.dev'],
+	['a token with no expiry', tokenWith({}), undefined],
+	['a token that is not a JWT, next to a refresh token', 'dev.dev.dev', 'r1'],
 ])(
 	'draws the sign-in card and drops the Session for %s',
-	async ([, access]) => {
-		holdSession(access, 'r-unreadable');
+	async ([, access, refresh]) => {
+		holdSession(access, refresh);
 
 		await renderRouter('/');
 
@@ -171,14 +171,18 @@ describe('renewing an expired Session before the first render', () => {
 		]);
 	});
 
-	it('draws the sign-in card and drops the Session when renewal is refused', async () => {
-		holdSession(tokenWith({ exp: now() - 61 }), 'r-refused');
+	it.for(['saas', 'standalone'])(
+		'draws the sign-in card and drops the Session when %s renewal is refused',
+		async (mode) => {
+			vi.stubEnv('APP_MODE', mode);
+			holdSession(tokenWith({ exp: now() - 61 }), `r-refused-${mode}`);
 
-		await renderRouter('/');
+			await renderRouter('/');
 
-		await expectSignInCard();
-		expect(getResponseHeaders().getSetCookie()).toEqual(ENDED);
-	});
+			await expectSignInCard();
+			expect(getResponseHeaders().getSetCookie()).toEqual(ENDED);
+		},
+	);
 
 	it('spends no refresh token on a live Session', async () => {
 		holdSession(tokenWith({ exp: now() + 300 }), 'r-good-live');
