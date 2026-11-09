@@ -16,6 +16,7 @@ A Session can also end after the page is drawn, or the user can hold a live toke
 
 - Every Application Screen sits under the pathless `_authenticated` layout. Its loader calls a server function that reads the Session cookies and decodes the access token's `exp` without verifying it, with a 60-second leeway. No token, or an expired one with no refresh token, renders the sign-in card in place of the outlet. A token whose `exp` cannot be read counts as live, and so does any token with a refresh token next to it, because the proxy renews on the first refusal. The answer is kept for the life of the document.
 - The arrival routes (`/$tenantSlug`, `/auth/callback`) stay outside the layout. They are rendered before the Launch has been adopted.
+- One exception to keeping the answer: a Launch adopted on a page inside the layout. A fragment never reaches the server, so it drew that document without the Session. After a successful adoption, the browser runs the layout's check once more on its first render. A refused adoption runs nothing more. A tenant slug that collides with a static route (`/notes`) lands here, and so does a hand-typed `/#token=…`.
 - One classifier (`src/features/auth/components/session-gate.tsx`) maps an upstream `error_code` to `no-session`, `not-provisioned` or nothing. The code decides, never the status. The mapped codes were read off the running upstreams by local-file-client. `TENANT_NOT_FOUND`, the Service's "tenant not provisioned", is read from the Service's source.
 - The classifier's gate is the router's `defaultErrorComponent`. Any other error falls through to the router's own error component.
 - One QueryClient per router. A Session error in a query or a mutation is thrown to the gate and never retried. Any other query error is retried up to three times and stays on the Screen. Mutations keep TanStack's default of no retries, because a replayed write can land twice.
@@ -29,6 +30,7 @@ A Session can also end after the page is drawn, or the user can hold a live toke
 
 ## Consequences
 
+- A Launch adopted inside the layout shows the gate for a moment before the Application.
 - A token that was revoked but has not expired draws the Application. The first call is then refused and the gate replaces the Screen.
 - A dead refresh token next to an expired access token draws the Application until the first call fails.
 - A new upstream refusal reaches the gate only once its code is added to the table. Until then it stays on the Screen. The table has to be read again whenever an upstream changes its gate.
