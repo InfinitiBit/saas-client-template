@@ -55,6 +55,13 @@ it.for([
 	},
 );
 
+it('checks the Session once after a Launch onto a tenant slug', async () => {
+	await launchAt(`/acme#token=${TOKEN}`);
+
+	expect(await screen.findByRole('link', { name: 'Notes' })).toBeTruthy();
+	expect(getRequest).toHaveBeenCalledTimes(1);
+});
+
 it('adopts a Launch without a refresh token', async () => {
 	await launchAt(`/acme#token=${TOKEN}`);
 

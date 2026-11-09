@@ -51,12 +51,17 @@ export async function getRouter() {
 
 	// The server drew this document before the Launch reached it, so the
 	// layout's kept Session answer is the one from before (ADR 0007).
+	// Past the arrival, the layout was loaded in the browser after adoption.
 	if (adopted) {
-		const stop = router.subscribe('onRendered', () => {
+		const arrival = router.history.location.href;
+
+		const stop = router.subscribe('onRendered', ({ toLocation }) => {
 			stop();
-			void router.invalidate({
-				filter: (match) => match.routeId === '/_authenticated',
-			});
+
+			if (toLocation.href === arrival)
+				void router.invalidate({
+					filter: (match) => match.routeId === '/_authenticated',
+				});
 		});
 	}
 
