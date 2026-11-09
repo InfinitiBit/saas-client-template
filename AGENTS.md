@@ -15,10 +15,20 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 
 ## Layout
 
-- Code a feature owns lives under `src/features/<feature>/`, split into `components/`, `hooks/` and `lib/` as the feature needs them. Split a large feature into `src/features/<feature>/<subfeature>/` only when it grows enough to need it. A feature's direct children are only those folders, `generated/` in `api`, subfeature folders (each split the same way) and, in a feature other than the template features `api`, `auth`, `brand` and `shell`, `index.ts`. `local/layout` enforces this; its `templateFeatures` option in `.oxlintrc.json` lists the template features.
+- **Template features** ship with the template and every derived repo keeps them: `api`, `auth`, `brand` and `shell`, listed in `settings.local.templateFeatures` in `.oxlintrc.json`. **Application features** are every other feature, the repo's own domain (ADR 0011).
+- Code a feature owns lives under `src/features/<feature>/`, split into `components/`, `hooks/` and `lib/` as the feature needs them. Split a large feature into `src/features/<feature>/<subfeature>/` only when it grows enough to need it. A feature's direct children are only those folders, `generated/` in `api`, subfeature folders (each split the same way) and, in an Application feature, `index.ts`. `local/layout` enforces this.
 - Route files stay in `src/routes/` and stay thin: they import behaviour from a feature instead of owning it.
 - Put a component in the narrowest folder that owns it. It moves to `src/components/` only when a second feature really needs it.
 - A barrel file only for a component with its own subcomponents, exporting only what other files call.
+- Which feature imports which (ADR 0011). `local/feature-boundaries` enforces each rule unless another enforcer is named:
+  - An Application feature imports any folder of a template feature by deep path.
+  - A template feature never imports an Application feature.
+  - Template features import each other; `import/no-cycle` keeps that acyclic.
+  - An Application feature imports another only through that feature's `index.ts`.
+  - `src/components/` and `src/lib/` import no feature.
+- These rules constrain only files under `src/features/`, `src/components/` and `src/lib/`. Root modules are shared code any feature may import. Routes, `router.tsx`, `server.ts`, `src/testing/` and tests import any feature, and folders inside one feature import each other freely.
+- An Application feature's `index.ts` is the second barrel case: only named re-exports of what another Application feature imports, no `export *`, no other statements, never a `.server.ts`, added only once needed. `local/feature-boundaries` checks its shape. Template features get no barrel.
+- Code two features share goes as high as it fits: compose it in the route, else move it into the slice it belongs to, else `src/components/` (UI) or `src/lib/` (everything else).
 - Server-only modules keep the `.server.ts` suffix and live inside the feature they belong to, or at the `src/` root when app-wide. There is no `src/server/` folder. `local/layout` enforces both.
 - Only app-wide entry points and configuration stay at the `src/` root.
 

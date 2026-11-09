@@ -296,10 +296,8 @@
 		"typescript/prefer-regexp-exec": "error",
 		"typescript/prefer-string-starts-ends-with": "error",
 		"local/no-jsx-and": "error",
-		"local/layout": [
-			"error",
-			{ "templateFeatures": ["api", "auth", "brand", "shell"] }
-		],
+		"local/layout": "error",
+		"local/feature-boundaries": "error",
 		"local/require-catches-comment": "error",
 		"@tanstack/router/create-route-property-order": "error",
 		"@tanstack/router/route-param-names": "error",
@@ -592,6 +590,9 @@
 		}
 	],
 	"settings": {
+		"local": {
+			"templateFeatures": ["api", "auth", "brand", "shell"]
+		},
 		"shadcn": {
 			"componentImports": ["^@infinitibit_gmbh/ui(/|$)"],
 			"note": "See AGENTS.md → UI."

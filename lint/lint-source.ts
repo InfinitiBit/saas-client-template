@@ -10,6 +10,7 @@ const root = join(import.meta.dirname, '..');
 const oxlintrcSchema = z.object({
 	ignorePatterns: z.array(z.string()),
 	rules: z.record(z.string(), z.unknown()),
+	settings: z.record(z.string(), z.unknown()),
 });
 
 // Runs oxlint over the repo, as `pnpm lint` does, with only `rule` on, set as `.oxlintrc.json` sets it.
@@ -39,6 +40,7 @@ export function lintSource(rule: string) {
 				},
 			],
 			rules: { [rule]: setting },
+			settings: config.settings,
 		}),
 	);
 
