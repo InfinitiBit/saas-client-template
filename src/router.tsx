@@ -26,8 +26,14 @@ export async function getRouter() {
 	const adopted = !import.meta.env.SSR && (await adoptLaunch());
 
 	// `pnpm dev:mock` alone: tests run as `test`, and a build drops the worker and its sample data.
-	if (!import.meta.env.SSR && import.meta.env.MODE === 'mock')
-		await (await import('@/features/api/lib/dev-service')).startDevService();
+	if (!import.meta.env.SSR && import.meta.env.MODE === 'mock') {
+		const [{ startDevService }, { notesDevHandlers }] = await Promise.all([
+			import('@/features/api/lib/dev-service'),
+			import('@/features/notes/lib/notes-mock'),
+		]);
+
+		await startDevService(notesDevHandlers);
+	}
 
 	// Per router, so one reader's data never lands in another's SSR.
 	const queryClient = new QueryClient({
