@@ -36,6 +36,7 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 
 - Screens call the orval-generated hooks directly; a feature hook only when shared or composite. Invalidate inline by the generated key prefix. Errors are handled centrally. Tests mock the Service at HTTP with MSW, never the hooks. See `docs/agents/data-fetching.md`.
 - Regenerate with `pnpm api:generate`; never edit `src/features/api/generated/`. `pnpm check` regenerates from the committed `openapi.yaml` and fails on any difference.
+- A feature's hand-written mock lives in its `lib/<feature>-mock.ts`; it serves `pnpm dev:mock` through the router and stands in for the Service in that feature's Screen tests.
 
 ## Checks
 

@@ -9,11 +9,6 @@ import {
 	getListNotesResponseMock,
 } from '@/features/api/generated/service.msw';
 import { IDENTITY_PATH, type Identity } from '@/features/api/lib/api';
-import {
-	createdNotes,
-	pagedNotes,
-	sampleNotes,
-} from '@/features/notes/lib/notes-mock';
 
 const devIdentity: Identity = {
 	email: 'dev@example.com',
@@ -65,14 +60,11 @@ export function devHandlers(handWritten: RequestHandler[]) {
 	];
 }
 
-export async function startDevService() {
-	// Relative dates count back from now, which moves between runs.
+export async function startDevService(handWritten: () => RequestHandler[]) {
+	// Relative dates count back from now, which moves between runs; `handWritten` draws its sample data after this.
 	faker.setDefaultRefDate('2026-01-01T00:00:00Z');
-	const notes = sampleNotes();
 
-	await setupWorker(
-		...devHandlers([pagedNotes(notes), createdNotes(notes)]),
-	).start({
+	await setupWorker(...devHandlers(handWritten())).start({
 		onUnhandledFrame: 'bypass',
 		quiet: true,
 	});
