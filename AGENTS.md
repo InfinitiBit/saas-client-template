@@ -35,12 +35,19 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 ## Data
 
 - Screens call the orval-generated hooks directly; a feature hook only when shared or composite. Invalidate inline by the generated key prefix. Errors are handled centrally. Tests mock the Service at HTTP with MSW, never the hooks. See `docs/agents/data-fetching.md`.
-- Regenerate with `pnpm api:generate`; never edit `src/features/api/generated/`.
+- Regenerate with `pnpm api:generate`; never edit `src/features/api/generated/`. `pnpm check` regenerates from the committed `openapi.yaml` and fails on any difference.
 - A feature's hand-written mock lives in its `lib/<feature>-mock.ts`; it serves `pnpm dev:mock` through the router and stands in for the Service in that feature's Screen tests.
 
 ## Checks
 
 `pnpm lint` (oxlint, type-aware), `pnpm format` (oxfmt), `pnpm type:check`, `pnpm test`, `pnpm build`. Commits are Conventional Commits (`pnpm commit` prompts); branches are `type/slug` or `type/scope/slug`. oxlint and oxfmt replace ESLint and Prettier (ADR 0001).
+
+Pre-commit scans the staged changes for secrets with gitleaks (`.gitleaks.toml`, the default rules) before lint-staged, and fails when gitleaks is not installed (`brew install gitleaks`). An allowlist entry is for a proven false positive and carries a one-line reason.
+
+- The git hooks are the gate. Pre-push checks the branch name, then runs `pnpm check` and `pnpm test`, and fails a run over its 3-minute budget. When it does, speed up the slowest tests that the run lists.
+- `pnpm install` installs the git hooks, and a Claude Code session runs it at startup (`.claude/settings.json`). `pnpm test` refuses to run while husky's pre-push hook is missing; run `pnpm install` and fix what it reports.
+- Never pass `--no-verify`. It skips the gate without a trace.
+- A fast or watch test loop (`vitest`, a filtered run) is for the inner loop. It is never the gate.
 
 Tests drive the client through one of two seams, with every upstream stubbed by MSW (`src/testing/msw.ts`); an undeclared request fails the test:
 
@@ -48,6 +55,8 @@ Tests drive the client through one of two seams, with every upstream stubbed by 
 - the real router rendered at an address: `renderRouter()` in `src/testing/render-router.tsx`.
 
 Tests run without Start's compiler, so `createServerFn` handlers run in-process (`src/testing/setup.ts`) and read the `process.env` a test stubs with `vi.stubEnv`. Their `getRequest()` is jsdom's address and `document.cookie`, which `holdSession()` (`src/testing/session.ts`) fills and every test starts without. What they add to the document response, such as a renewed Session's `Set-Cookie`, is read back with `getResponseHeaders()`. The shim models `.handler()` only; extend it when a server function first needs `.inputValidator()` or middleware.
+
+A local lint rule lives in `lint/plugin.ts` as a thin visitor around an exported pure decision function, and is tested in `lint/<rule>.test.ts`: a table test of the function with invented names (oxlint's `RuleTester` when its input is an AST node), and a smoke run, `lintSource('local/<rule>')` in `lint/lint-source.ts`, that lints the real `src/` with only that rule and expects exit 0.
 
 ## Agent skills
 
