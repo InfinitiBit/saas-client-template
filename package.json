@@ -13,10 +13,12 @@
 		"format": "oxfmt",
 		"format:check": "oxfmt --check",
 		"type:check": "pnpm i18n:compile && tsc",
+		"check": "pnpm lint && pnpm format:check && pnpm type:check && pnpm api:check",
 		"i18n:compile": "paraglide-js compile --project ./project.inlang",
 		"commit": "cz",
 		"prepare": "husky && pnpm i18n:compile",
-		"api:generate": "orval"
+		"api:generate": "orval",
+		"api:check": "snapshot=$(mktemp -d) && cp -R src/features/api/generated/. $snapshot && env -u API_SPEC orval && diff -rq $snapshot src/features/api/generated"
 	},
 	"config": {
 		"commitizen": {
