@@ -35,7 +35,7 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 ## Data
 
 - Screens call the orval-generated hooks directly; a feature hook only when shared or composite. Invalidate inline by the generated key prefix. Errors are handled centrally. Tests mock the Service at HTTP with MSW, never the hooks. See `docs/agents/data-fetching.md`.
-- Regenerate with `pnpm api:generate`; never edit `src/features/api/generated/`.
+- Regenerate with `pnpm api:generate`; never edit `src/features/api/generated/`. `pnpm check` regenerates from the committed `openapi.yaml` and fails on any difference.
 
 ## Checks
 
