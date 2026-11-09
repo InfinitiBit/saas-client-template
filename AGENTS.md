@@ -41,6 +41,8 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 
 `pnpm lint` (oxlint, type-aware), `pnpm format` (oxfmt), `pnpm type:check`, `pnpm test`, `pnpm build`. Commits are Conventional Commits (`pnpm commit` prompts); branches are `type/slug` or `type/scope/slug`. oxlint and oxfmt replace ESLint and Prettier (ADR 0001).
 
+`pnpm install` installs the git hooks, and a Claude Code session runs it at startup (`.claude/settings.json`). `pnpm test` refuses to run while husky's pre-push hook is missing; run `pnpm install` and fix what it reports.
+
 Tests drive the client through one of two seams, with every upstream stubbed by MSW (`src/testing/msw.ts`); an undeclared request fails the test:
 
 - a server route called as `Request` → `Response`: `respond()` in `src/testing/respond.ts`;

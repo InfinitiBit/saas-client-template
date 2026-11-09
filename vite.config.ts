@@ -39,6 +39,7 @@ export default defineConfig(({ mode: viteMode }) => {
 			environment: 'jsdom',
 			globals: true,
 			env: { TZ: 'UTC' },
+			globalSetup: ['./src/testing/require-hooks.ts'],
 			setupFiles: ['./src/testing/setup.ts'],
 			exclude: [...defaultExclude, '.claude/**'],
 		},
