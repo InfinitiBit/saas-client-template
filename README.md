@@ -99,6 +99,7 @@ orval reads [`openapi.yaml`](openapi.yaml), or the file or URL in `API_SPEC`, an
 
 - Node.js at the major in `.nvmrc`
 - pnpm at the version pinned in `packageManager`. `npm install -g pnpm` installs it.
+- [gitleaks](https://github.com/gitleaks/gitleaks#installing). `brew install gitleaks` installs it. Without it, every commit fails.
 
 ### Installation
 
@@ -109,6 +110,8 @@ orval reads [`openapi.yaml`](openapi.yaml), or the file or URL in `API_SPEC`, an
     ```bash
     pnpm install
     ```
+
+    This also installs the git hooks. `pnpm test` refuses to run until they are installed.
 
 3.  **Set up the environment.** Copy the example for your Mode to `.env`:
 
@@ -206,7 +209,7 @@ Mock the Service over HTTP, never the hooks. `holdSession()` from `src/testing/s
 
 ## Workflows
 
-- **CI.** `.github/workflows/ci.yml` runs the lint, format, type and test checks and a build. Start it by hand from the Actions tab.
+- **CI.** `.github/workflows/ci.yml` runs `pnpm check`, `pnpm test` and `pnpm build` on every pull request and every push to `dev`. A pull request against `dev` cannot merge while it fails. It repeats the pre-push gate, so a push that skipped the hooks is still caught. Run it by hand from the Actions tab.
 - **Release.** `.github/workflows/release.yml` runs semantic-release on every push to `main`.
 
 ## Contributing
@@ -214,9 +217,11 @@ Mock the Service over HTTP, never the hooks. `holdSession()` from `src/testing/s
 Work moves from `dev` to `stage` to `main`. `dev` is the default branch.
 
 1.  Branch from `dev` as `type/slug` or `type/scope/slug`, such as `fix/login-redirect` or `feat/notes/create-dialog`.
-2.  Run the checks: `pnpm lint`, `pnpm format:check`, `pnpm type:check`, `pnpm test`.
+2.  Run the checks: `pnpm check` (lint, format, types and the generated API client) and `pnpm test`.
 3.  Commit with Conventional Commits. `pnpm commit` prompts for one, and commitlint rejects any other message.
-4.  Push the branch and open a pull request against `dev`. A squash merge turns the pull request title into the commit, so write the title as a Conventional Commit.
+4.  Push the branch and open a pull request against `dev`. The push runs the gate below, and CI runs it again on the pull request, which cannot merge until CI passes. A squash merge turns the pull request title into the commit, so write the title as a Conventional Commit.
+
+Never pass `--no-verify`. CI catches what it skips, but only after the push.
 
 ### Releases
 
@@ -226,6 +231,6 @@ Work moves from `dev` to `stage` to `main`. `dev` is the default branch.
 
 ### Git hooks
 
-- `pre-commit` runs `pnpm lint-staged`, which lints and formats the staged files.
+- `pre-commit` scans the staged changes for secrets with gitleaks, then runs `pnpm lint-staged`, which lints and formats the staged files.
 - `commit-msg` runs commitlint on the message.
-- `pre-push` rejects a push to a remote branch whose name is not `main`, `stage`, `dev`, `type/slug` or `type/scope/slug`. Tags and branch deletions pass.
+- `pre-push` rejects a push to a remote branch whose name is not `main`, `stage`, `dev`, `type/slug` or `type/scope/slug`. It then runs `pnpm check` and `pnpm test`, and rejects the push if they fail or take longer than 3 minutes. Tags and branch deletions skip both.
