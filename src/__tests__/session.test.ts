@@ -41,6 +41,7 @@ describe('adopting a SaaS Launch', () => {
 		vi.stubEnv('APP_MODE', 'saas');
 	});
 
+	// Catches: a Launch's tokens landing in cookies page scripts can read, or that are sent cross-site or over plain HTTP.
 	it('holds both tokens in HttpOnly session cookies', async () => {
 		const response = await adopt({ token: TOKEN, refresh_token: REFRESH });
 
@@ -51,6 +52,7 @@ describe('adopting a SaaS Launch', () => {
 		]);
 	});
 
+	// Catches: a new Launch keeping the previous user's refresh token, so a later renewal signs in as them.
 	it('starts a Session from a Launch without a refresh token, dropping any previous one', async () => {
 		const response = await adopt({ token: TOKEN });
 
@@ -69,6 +71,7 @@ describe('adopting a Standalone arrival from gt', () => {
 		vi.stubEnv('APP_MODE', 'standalone');
 	});
 
+	// Catches: a Standalone arrival cookie surviving the sign-in, so it can be replayed to adopt another token later.
 	it('holds the pair and spends the arrival cookie /signin left', async () => {
 		const response = await adopt(
 			{ token: TOKEN, refresh_token: REFRESH },
@@ -83,6 +86,7 @@ describe('adopting a Standalone arrival from gt', () => {
 		]);
 	});
 
+	// Catches: a crafted link signing the user into an attacker's gt account (login CSRF).
 	it('refuses an arrival this browser never started, which a crafted link can deliver', async () => {
 		const response = await adopt({ token: TOKEN, refresh_token: REFRESH });
 
@@ -96,6 +100,7 @@ describe('refusing an adoption', () => {
 		vi.stubEnv('APP_MODE', 'saas');
 	});
 
+	// Catches: a missing, malformed or cookie-injecting token being stored, planting extra cookies in the user's browser.
 	it.for([
 		['no token', {}],
 		['a token that is not a JWT', { token: 'not-a-jwt' }],
@@ -112,6 +117,7 @@ describe('refusing an adoption', () => {
 		expect(response.headers.getSetCookie()).toEqual([]);
 	});
 
+	// Catches: a cross-site form posting a token as plain text and signing the user into someone else's Session.
 	it('refuses a body that is not JSON, which a cross-site form can send', async () => {
 		const response = await adopt(
 			{ token: TOKEN },
@@ -136,6 +142,7 @@ function signOut() {
 }
 
 describe('signing out', () => {
+	// Catches: signing out leaving the Session alive at Platform Auth, where a stolen refresh token still works.
 	it('ends a SaaS Session at Platform Auth, not only here', async () => {
 		vi.stubEnv('APP_MODE', 'saas');
 		vi.stubEnv('PLATFORM_AUTH_URL', PLATFORM_AUTH_URL);
@@ -156,6 +163,7 @@ describe('signing out', () => {
 		expect(response.headers.getSetCookie()).toEqual(ENDED);
 	});
 
+	// Catches: a Platform Auth outage leaving the user unable to sign out.
 	it('still signs out here when Platform Auth cannot be reached', async () => {
 		vi.stubEnv('APP_MODE', 'saas');
 		vi.stubEnv('PLATFORM_AUTH_URL', PLATFORM_AUTH_URL);
@@ -171,6 +179,7 @@ describe('signing out', () => {
 		expect(response.headers.getSetCookie()).toEqual(ENDED);
 	});
 
+	// Catches: a deployment without PLATFORM_AUTH_URL leaving the user unable to sign out.
 	it('still signs out here when Platform Auth was never configured', async () => {
 		vi.stubEnv('APP_MODE', 'saas');
 		vi.stubEnv('PLATFORM_AUTH_URL', undefined);
@@ -181,6 +190,7 @@ describe('signing out', () => {
 		expect(response.headers.getSetCookie()).toEqual(ENDED);
 	});
 
+	// Catches: Standalone sign-out failing or calling gt for a revoke it does not offer.
 	it('ends a Standalone Session by dropping it, since gt has nothing to revoke', async () => {
 		// An undeclared request fails the test, so this also asserts gt is not called.
 		vi.stubEnv('APP_MODE', 'standalone');

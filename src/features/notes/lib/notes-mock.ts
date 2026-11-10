@@ -54,3 +54,9 @@ export function pagedNotes(notes: Note[]) {
 		};
 	});
 }
+
+export function notesDevHandlers() {
+	const notes = sampleNotes();
+
+	return [pagedNotes(notes), createdNotes(notes)];
+}

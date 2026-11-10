@@ -11,6 +11,7 @@ const spec = (schemas: NonNullable<OpenApiDocument['components']>['schemas']) =>
 		components: { schemas },
 	}) satisfies OpenApiDocument;
 
+// Catches: a layout that breaks on a two-letter, 200-character or unbroken 60-character title never meeting such text in local dev.
 test('draws two letters, a 200-character sentence, a 60-character token, a long company name and ordinary text', () => {
 	faker.seed(1);
 	const draws = Array.from({ length: 200 }, edgeText);
@@ -26,6 +27,7 @@ test('draws two letters, a 200-character sentence, a 60-character token, a long 
 	expect(draws.some((text) => text.length > 2 && text.length < 60)).toBe(true);
 });
 
+// Catches: local dev filling an enum, id, URL or nested object with edge text, so the dev app shows values the Service can never send.
 test('gives edge text to plain human-text strings only', () => {
 	const properties = edgeProperties(
 		spec({
@@ -55,6 +57,7 @@ test('gives edge text to plain human-text strings only', () => {
 	]);
 });
 
+// Catches: a status `name` that is an enum elsewhere in the spec getting free text in local dev and breaking the screen that switches on it.
 test('keeps a name that is an enum anywhere in the spec', () => {
 	const properties = edgeProperties(
 		spec({

@@ -58,6 +58,7 @@ describe('the classifier, as the router default error component', () => {
 		await renderRouter('/');
 	}
 
+	// Catches: a user whose Session has ended, or whose Workspace has no Application, seeing a generic error instead of the card that tells them what to do.
 	it.for([
 		['NOT_AUTHENTICATED', SIGN_IN],
 		['INVALID_PLATFORM_TOKEN', SIGN_IN],
@@ -72,6 +73,7 @@ describe('the classifier, as the router default error component', () => {
 
 	// Refusals the upstreams answer that are not the Session's: the Screen's
 	// own, out of a Screen's reach, or a permission rather than a way in.
+	// Catches: a validation, permission or outage error throwing the user onto the sign-in card as if signed out.
 	it.for([
 		'HTTP_ERROR',
 		'FILE_NOT_FOUND',
@@ -107,6 +109,7 @@ describe('the classifier, as the router default error component', () => {
 		expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
 	});
 
+	// Catches: an error with no code, no body or a code like `constructor` being mistaken for a Session refusal.
 	it.for([
 		['a refusal with no code', refusal({ detail: 'Not authenticated' })],
 		['an error with no body', new Error('offline')],
@@ -137,6 +140,7 @@ describe('a query', () => {
 		return asked;
 	}
 
+	// Catches: an ended Session leaving the Screen waiting forever, or retrying a refusal that cannot succeed.
 	it('meets the sign-in card on a Session error, asking once', async () => {
 		const asked = identityAnswers(401, { error_code: 'NOT_AUTHENTICATED' });
 
@@ -146,6 +150,7 @@ describe('a query', () => {
 		expect(asked).toHaveLength(1);
 	});
 
+	// Catches: a Workspace without the Application leaving the user on a spinner instead of the not-provisioned card.
 	it('meets the not-provisioned card when the Workspace has no Application', async () => {
 		const asked = identityAnswers(404, { error_code: 'TENANT_NOT_FOUND' });
 
@@ -155,6 +160,7 @@ describe('a query', () => {
 		expect(asked).toHaveLength(1);
 	});
 
+	// Catches: a passing upstream hiccup throwing the user off the Screen instead of being retried.
 	it('retries any other error and stays on the Screen', async () => {
 		const asked = identityAnswers(502, { error_code: 'HTTP_ERROR' });
 
@@ -192,6 +198,7 @@ describe('a mutation', () => {
 		};
 	}
 
+	// Catches: a save with an ended Session failing silently instead of showing the sign-in card.
 	it('meets the sign-in card on a Session error', async () => {
 		saveAnswer(401, { error_code: 'NOT_AUTHENTICATED' });
 		await renderRouter('/');
@@ -201,6 +208,7 @@ describe('a mutation', () => {
 		expect(await heading()).toBe(SIGN_IN);
 	});
 
+	// Catches: a rejected save throwing the user off the Screen instead of letting it show the error.
 	it('stays on the Screen for any other error', async () => {
 		saveAnswer(422, { error_code: 'VALIDATION_ERROR' });
 		await renderRouter('/');

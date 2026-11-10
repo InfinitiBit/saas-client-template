@@ -54,6 +54,7 @@ const goToPage = (page: number) =>
 		),
 	);
 
+// Catches: the Notes screen showing nothing, or more than one page of rows, on first open.
 it('lists the first page of Notes from the Service', async () => {
 	server.use(pagedNotes(notes));
 
@@ -64,6 +65,7 @@ it('lists the first page of Notes from the Service', async () => {
 	expect(titles().at(-1)).toBe('Note 20');
 });
 
+// Catches: the pager not reaching the last Notes, or showing page 1's rows again on page 2.
 it('pages through the Notes on the Service', async () => {
 	server.use(pagedNotes(notes));
 
@@ -81,6 +83,7 @@ it('pages through the Notes on the Service', async () => {
 	]);
 });
 
+// Catches: a shared link to page 2 opening on page 1.
 it('opens the page a link names', async () => {
 	server.use(pagedNotes(notes));
 
@@ -90,6 +93,7 @@ it('opens the page a link names', async () => {
 	expect(router.state.location.searchStr).toBe('?page=2');
 });
 
+// Catches: a hand-edited or stale link with a bad page, size or search showing an error instead of the first page.
 it('opens a malformed link at the first page, and cleans the address', async () => {
 	server.use(pagedNotes(notes));
 
@@ -100,6 +104,7 @@ it('opens a malformed link at the first page, and cleans the address', async () 
 	expect(router.state.location.href).toBe('/notes');
 });
 
+// Catches: addresses carrying `?page=1&size=20`, so the same list gets two different links.
 it('leaves the defaults out of the address', async () => {
 	server.use(pagedNotes(notes));
 
@@ -109,6 +114,7 @@ it('leaves the defaults out of the address', async () => {
 	expect(router.state.location.href).toBe('/notes');
 });
 
+// Catches: Back leaving the Notes list instead of returning to the previous page.
 it('keeps the page in the address, where Back returns to it', async () => {
 	server.use(pagedNotes(notes));
 
@@ -124,6 +130,7 @@ it('keeps the page in the address, where Back returns to it', async () => {
 	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
 });
 
+// Catches: a search firing a request per keystroke, staying on page 2 where the results are not, or filling history with one entry per letter.
 it('searches once typing stops, from the first page, in the same history entry', async () => {
 	const searched: string[] = [];
 	server.use(
@@ -167,6 +174,7 @@ it('searches once typing stops, from the first page, in the same history entry',
 	expect(searched).toEqual(['note 2']);
 });
 
+// Catches: a search with no results looking like an empty account instead of saying nothing matched.
 it('says so when nothing matches the search', async () => {
 	server.use(pagedNotes(notes));
 
@@ -175,6 +183,7 @@ it('says so when nothing matches the search', async () => {
 	expect(await screen.findByText('No notes match “zebra”.')).toBeTruthy();
 });
 
+// Catches: the list flashing to a loading state on every page change.
 it('keeps the current page on screen while the next one loads', async () => {
 	let answer: () => void = () => undefined;
 
@@ -206,6 +215,7 @@ it('keeps the current page on screen while the next one loads', async () => {
 	expect(await screen.findByRole('cell', { name: 'Note 21' })).toBeTruthy();
 });
 
+// Catches: a shared link with a search opening with an empty search box while the list is filtered.
 it('reopens the search and page an address holds', async () => {
 	server.use(pagedNotes(notes));
 
@@ -218,6 +228,7 @@ it('reopens the search and page an address holds', async () => {
 	).toBe('note');
 });
 
+// Catches: Back changing the results while the search box keeps the old text.
 it('follows the address when Back changes the search', async () => {
 	server.use(pagedNotes(notes));
 
@@ -237,6 +248,7 @@ it('follows the address when Back changes the search', async () => {
 	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
 });
 
+// Catches: a half-typed search landing in the address after Back already moved away from it.
 it('drops a search still being typed when Back moves away from it', async () => {
 	server.use(pagedNotes(notes));
 
@@ -258,6 +270,7 @@ it('drops a search still being typed when Back moves away from it', async () => 
 	expect(router.state.location.href).toBe('/notes');
 });
 
+// Catches: the copy button on a row copying the wrong Note, or nothing.
 it("copies a Note's text from its row", async () => {
 	const writeText = vi.fn(() => Promise.resolve());
 
@@ -272,6 +285,7 @@ it("copies a Note's text from its row", async () => {
 	expect(writeText).toHaveBeenCalledWith('Body of note 2');
 });
 
+// Catches: a new account seeing a blank table instead of being told there are no Notes yet.
 it('says so when there are no Notes', async () => {
 	server.use(pagedNotes([]));
 
@@ -280,6 +294,7 @@ it('says so when there are no Notes', async () => {
 	expect(await screen.findByText('No notes yet.')).toBeTruthy();
 });
 
+// Catches: a signed-out user on the Notes screen seeing an error instead of the sign-in card.
 it('draws the Session gate when the Service refuses the Session', async () => {
 	server.use(
 		http.get(`${location.origin}/api/notes`, () =>
@@ -297,6 +312,7 @@ it('draws the Session gate when the Service refuses the Session', async () => {
 	).toBeTruthy();
 });
 
+// Catches: a Service outage showing an endless spinner, or throwing the user off the Notes screen.
 it('keeps any other failure on the Screen, once the retries are spent', async () => {
 	vi.useFakeTimers({ shouldAdvanceTime: true });
 	server.use(
@@ -313,6 +329,7 @@ it('keeps any other failure on the Screen, once the retries are spent', async ()
 	).toBeTruthy();
 });
 
+// Catches: the Notes screen being unreachable from the top bar.
 it('reaches the Notes from the top bar', async () => {
 	server.use(pagedNotes(notes));
 
@@ -334,6 +351,7 @@ describe('creating a Note', () => {
 		return screen.findByRole('dialog', { name: 'New note' });
 	};
 
+	// Catches: the New note dialog opening without focus in the title, so keyboard users must hunt for it.
 	it('opens ready to type the title', async () => {
 		server.use(pagedNotes(notes));
 
@@ -347,6 +365,7 @@ describe('creating a Note', () => {
 		);
 	});
 
+	// Catches: the form scolding a user for an empty title before they ever submitted.
 	it('says nothing is wrong until the first submit, then what is', async () => {
 		server.use(pagedNotes(notes));
 
@@ -365,6 +384,7 @@ describe('creating a Note', () => {
 		expect(title.getAttribute('aria-invalid')).toBe('true');
 	});
 
+	// Catches: a screen reader user never hearing the title error, or not being told the title is required.
 	it('announces the error on an empty submit, on a title marked required', async () => {
 		server.use(pagedNotes(notes));
 
@@ -382,6 +402,7 @@ describe('creating a Note', () => {
 		expect(title.getAttribute('aria-invalid')).toBe('true');
 	});
 
+	// Catches: a title error lingering after it is fixed, or a too-long title being accepted silently.
 	it('clears an error as soon as the field is corrected', async () => {
 		server.use(pagedNotes(notes));
 
@@ -407,6 +428,7 @@ describe('creating a Note', () => {
 		).toBeTruthy();
 	});
 
+	// Catches: a created Note not appearing in the list until reload, no confirmation, or the dialog staying open.
 	it('creates the Note, says so and shows it in the list', async () => {
 		const stored = [...notes];
 		server.use(pagedNotes(stored), createdNotes(stored));
@@ -427,6 +449,7 @@ describe('creating a Note', () => {
 		expect(screen.queryByRole('dialog')).toBeNull();
 	});
 
+	// Catches: a failed create closing the dialog and losing what the user typed.
 	it('keeps the dialog and what was typed when the Service fails', async () => {
 		server.use(
 			pagedNotes(notes),
@@ -447,6 +470,7 @@ describe('creating a Note', () => {
 		expect(title).toHaveProperty('value', 'Groceries');
 	});
 
+	// Catches: a create with an expired Session showing a generic error instead of the sign-in card.
 	it('draws the Session gate when the Service refuses the create', async () => {
 		server.use(
 			pagedNotes(notes),
@@ -470,6 +494,7 @@ describe('creating a Note', () => {
 		).toBeTruthy();
 	});
 
+	// Catches: a German user seeing form errors in English.
 	it('says what is wrong in German under de', async () => {
 		document.cookie = `${cookieName}=de`;
 		server.use(pagedNotes(notes));
@@ -485,6 +510,7 @@ describe('creating a Note', () => {
 	});
 });
 
+// Catches: local dev Notes never showing a two- or 200-character title, so a layout that breaks on them ships unseen.
 test('gives the Notes sample short and long titles from the edge pool', () => {
 	const lengths = sampleNotes().map((note) => note.title.length);
 

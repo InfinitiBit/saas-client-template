@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"plugins": ["react", "typescript", "jsx-a11y", "unicorn"],
+	"plugins": ["react", "typescript", "jsx-a11y", "unicorn", "import"],
 	"categories": {
 		"correctness": "off"
 	},
@@ -22,6 +22,7 @@
 	],
 	"rules": {
 		"constructor-super": "error",
+		"max-lines": ["error", { "max": 600 }],
 		"for-direction": "error",
 		"getter-return": "error",
 		"no-async-promise-executor": "error",
@@ -295,6 +296,9 @@
 		"typescript/prefer-regexp-exec": "error",
 		"typescript/prefer-string-starts-ends-with": "error",
 		"local/no-jsx-and": "error",
+		"local/layout": "error",
+		"local/feature-boundaries": "error",
+		"local/require-catches-comment": "error",
 		"@tanstack/router/create-route-property-order": "error",
 		"@tanstack/router/route-param-names": "error",
 		"oxc/no-accumulating-spread": "error",
@@ -440,7 +444,7 @@
 					}
 				],
 				"import/no-default-export": "error",
-				"import/no-cycle": "off",
+				"import/no-cycle": "error",
 				"typescript/await-thenable": "warn",
 				"typescript/only-throw-error": [
 					"warn",
@@ -450,21 +454,19 @@
 						"allowThrowingUnknown": false
 					}
 				]
-			},
-			"plugins": ["import"]
+			}
 		},
 		{
 			"files": [
 				"*.config.ts",
 				"*.config.mjs",
-				"lint/plugin.js",
+				"lint/plugin.ts",
 				"src/nitro/**",
 				"src/server.ts"
 			],
 			"rules": {
 				"import/no-default-export": "off"
-			},
-			"plugins": ["import"]
+			}
 		},
 		{
 			"files": ["**/*.test.*", "**/__tests__/**"],
@@ -581,13 +583,16 @@
 	"jsPlugins": [
 		"@shadcn/lint",
 		"@tanstack/eslint-plugin-router",
-		"./lint/plugin.js",
+		"./lint/plugin.ts",
 		{
 			"name": "anti-slop",
 			"specifier": "./lint/anti-slop/index.ts"
 		}
 	],
 	"settings": {
+		"local": {
+			"templateFeatures": ["api", "auth", "brand", "shell"]
+		},
 		"shadcn": {
 			"componentImports": ["^@infinitibit_gmbh/ui(/|$)"],
 			"note": "See AGENTS.md → UI."

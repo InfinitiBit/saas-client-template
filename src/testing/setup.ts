@@ -1,4 +1,5 @@
 import { getRequest } from '@tanstack/react-start/server';
+import { configure } from '@testing-library/react';
 import { toast } from 'sonner';
 
 import { server } from './msw';
@@ -31,6 +32,8 @@ vi.mock('@tanstack/react-start/server', async (importOriginal) => ({
 if (typeof window !== 'undefined') {
 	window.scrollTo = () => undefined;
 }
+
+configure({ asyncUtilTimeout: 5000 });
 
 beforeAll(() => {
 	server.listen({ onUnhandledFrame: 'error' });

@@ -56,6 +56,7 @@ async function openAccountMenu() {
 	return screen.findByRole('menu');
 }
 
+// Catches: the top bar losing its navigation, or not marking the current Screen for sighted and screen reader users.
 it("draws the Application's navigation in the top bar, marking the current Screen", async () => {
 	await renderRouter('/');
 
@@ -69,6 +70,7 @@ it("draws the Application's navigation in the top bar, marking the current Scree
 	expect(home.getAttribute('aria-current')).toBe('page');
 });
 
+// Catches: Apps or Notifications looking clickable before the platform offers them, so clicks do nothing.
 it('shows Apps and Notifications, disabled until the platform has them', async () => {
 	await renderRouter('/');
 
@@ -80,6 +82,7 @@ it('shows Apps and Notifications, disabled until the platform has them', async (
 		).toBe(true);
 });
 
+// Catches: a user unable to tell which account and Workspace they are signed into.
 it('names the Identity and its Workspace in the account menu', async () => {
 	const menu = await openAccountMenu();
 
@@ -87,6 +90,7 @@ it('names the Identity and its Workspace in the account menu', async () => {
 	expect(within(menu).getByText('acme')).toBeTruthy();
 });
 
+// Catches: the language switch doing nothing, or forgetting the choice on the next visit.
 it('switches the language from the account menu and keeps it in the cookie', async () => {
 	const menu = await openAccountMenu();
 
@@ -103,6 +107,7 @@ it('switches the language from the account menu and keeps it in the cookie', asy
 	expect(document.cookie).toContain(`${cookieName}=de`);
 });
 
+// Catches: Sign out leaving the Session alive because the menu never called the Session route.
 it('signs out through the Session route', async () => {
 	const ended = vi.fn();
 
@@ -123,6 +128,7 @@ it('signs out through the Session route', async () => {
 	});
 });
 
+// Catches: a Screen's actions rendering in the page body instead of the top bar.
 it("puts a Screen's actions in the top bar", async () => {
 	await renderRouter('/with-actions');
 
